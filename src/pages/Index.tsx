@@ -276,7 +276,7 @@ const Index = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900 print:text-xl">Loan Amortization Calculator</h1>
+                <h1 className="text-2xl font-semibold text-slate-900 print:text-xl">Loan Amortization Calculator designed by fromscratchsoftware.com</h1>
                 <p className="text-sm text-slate-500 print:hidden">Calculate your mortgage payments and view the full schedule</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ const Index = () => {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-semibold text-slate-900 mb-2">Welcome to the Loan Amortization Calculator (Demo Mode)</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">Welcome to the Loan Amortization Calculator designed by fromscratchsoftware.com (Demo Mode)</h3>
                 <p className="text-sm text-slate-700 mb-3">
                   This calculator is pre-filled with demo values to showcase all features. Adjust any values in the left panel to see real-time updates.
                 </p>
@@ -920,7 +920,7 @@ const Index = () => {
       <footer className="border-t border-slate-200 mt-12 bg-white print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-sm text-slate-500 text-center">
-            This calculator provides estimates for informational purposes only. Actual loan terms may vary.
+            This calculator provides estimates for informational purposes only. Actual loan terms may vary. Developer: fromscratchsoftware.com
           </p>
         </div>
       </footer>
@@ -942,3 +942,4 @@ const Index = () => {
 };
 
 export default Index;
+
