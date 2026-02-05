@@ -54,6 +54,7 @@ const Index = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -231,6 +232,15 @@ const Index = () => {
     window.print();
   };
 
+  const handleContactLink = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setShowContactForm(true);
+    const section = document.getElementById('contact');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -297,7 +307,12 @@ const Index = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900 print:text-xl">Loan Amortization Calculator</h1>
+                <h1 className="text-2xl font-semibold text-slate-900 print:text-xl">
+                  Loan Amortization Calculator developed by{' '}
+                  <a className="text-primary-600 hover:text-primary-700" href="https://fromscratchsoftware.com" target="_blank" rel="noreferrer">
+                    fromscratchsoftware.com
+                  </a>
+                </h1>
                 <p className="text-sm text-slate-500 print:hidden">Calculate your mortgage payments and view the full schedule</p>
               </div>
             </div>
@@ -327,7 +342,13 @@ const Index = () => {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-semibold text-slate-900 mb-2">Welcome to the Loan Amortization Calculator (Demo Mode)</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">
+                  Welcome to the Loan Amortization Calculator developed by{' '}
+                  <a className="text-primary-600 hover:text-primary-700" href="https://fromscratchsoftware.com" target="_blank" rel="noreferrer">
+                    fromscratchsoftware.com
+                  </a>{' '}
+                  (Demo Mode)
+                </h3>
                 <p className="text-sm text-slate-700 mb-3">
                   This calculator is pre-filled with demo values to showcase all features. Adjust any values in the left panel to see real-time updates.
                 </p>
@@ -942,7 +963,12 @@ const Index = () => {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[1.05fr,1.4fr]">
             <div>
-              <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase">Developed by fromscratchsoftware.com</p>
+              <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase">
+                Developed by{' '}
+                <a className="text-primary-600 hover:text-primary-700" href="https://fromscratchsoftware.com" target="_blank" rel="noreferrer">
+                  fromscratchsoftware.com
+                </a>
+              </p>
               <h3 className="mt-3 text-2xl font-semibold text-slate-900">Need a tool like this or custom software?</h3>
               <p className="mt-3 text-sm text-slate-600">
                 Share a few details and we will follow up with ideas, timelines, and a clear next step.
@@ -963,64 +989,66 @@ const Index = () => {
               </div>
             </div>
 
-            <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+            {showContactForm && (
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-name">Name</label>
+                    <input
+                      id="contact-name"
+                      name="name"
+                      type="text"
+                      required
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                      placeholder="Your name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-email">Email</label>
+                    <input
+                      id="contact-email"
+                      name="email"
+                      type="email"
+                      required
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                      placeholder="you@company.com"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-name">Name</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-company">Company (optional)</label>
                   <input
-                    id="contact-name"
-                    name="name"
+                    id="contact-company"
+                    name="company"
                     type="text"
-                    required
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                    placeholder="Your name"
+                    placeholder="Company name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-email">Email</label>
-                  <input
-                    id="contact-email"
-                    name="email"
-                    type="email"
+                  <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-message">What do you want to build?</label>
+                  <textarea
+                    id="contact-message"
+                    name="message"
+                    rows={4}
                     required
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                    placeholder="you@company.com"
+                    placeholder="Tell us about your tool, goals, or timeline."
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-company">Company (optional)</label>
-                <input
-                  id="contact-company"
-                  name="company"
-                  type="text"
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Company name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="contact-message">What do you want to build?</label>
-                <textarea
-                  id="contact-message"
-                  name="message"
-                  rows={4}
-                  required
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Tell us about your tool, goals, or timeline."
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Contact Us
-                </button>
-                {contactSubmitted && (
-                  <span className="text-sm text-emerald-600">Thanks! Your email draft is ready to send.</span>
-                )}
-              </div>
-            </form>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Contact Us
+                  </button>
+                  {contactSubmitted && (
+                    <span className="text-sm text-emerald-600">Thanks! Your email draft is ready to send.</span>
+                  )}
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </section>
@@ -1029,8 +1057,13 @@ const Index = () => {
       <footer className="border-t border-slate-200 mt-12 bg-white print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-sm text-slate-500 text-center">
-            This calculator provides estimates for informational purposes only. Actual loan terms may vary. Developed by fromscratchsoftware.com. Need a tool like this or custom software?{' '}
-            <a className="text-primary-600 hover:text-primary-700 font-medium" href="#contact">Contact us.</a>
+            This calculator provides estimates for informational purposes only. Actual loan terms may vary. Developed by{' '}
+            <a className="text-primary-600 hover:text-primary-700 font-medium" href="https://fromscratchsoftware.com" target="_blank" rel="noreferrer">
+              fromscratchsoftware.com
+            </a>. Need a tool like this or custom software?{' '}
+            <a className="text-primary-600 hover:text-primary-700 font-medium" href="#contact" onClick={handleContactLink}>
+              Contact us.
+            </a>
           </p>
         </div>
       </footer>
