@@ -255,7 +255,7 @@ const Index = () => {
       `Name: ${name}\nEmail: ${email}\nCompany: ${company || '—'}\n\nMessage:\n${message}`
     );
 
-    window.location.href = `mailto:hello@fromscratchsoftware.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:contact@fromscratchsoftware.com?subject=${subject}&body=${body}`;
     setContactSubmitted(true);
     form.reset();
     window.setTimeout(() => setContactSubmitted(false), 8000);
@@ -976,8 +976,8 @@ const Index = () => {
               <div className="mt-4 text-sm text-slate-600 space-y-2">
                 <p>
                   Prefer email?{' '}
-                  <a className="text-primary-600 hover:text-primary-700 font-medium" href="mailto:hello@fromscratchsoftware.com">
-                    hello@fromscratchsoftware.com
+                  <a className="text-primary-600 hover:text-primary-700 font-medium" href="mailto:contact@fromscratchsoftware.com">
+                    contact@fromscratchsoftware.com
                   </a>
                 </p>
                 <p>
