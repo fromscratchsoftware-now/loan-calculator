@@ -249,3 +249,23 @@ Test message from bot5: reply with OK-CODEX-LINK-3.
 OK-CODEX-LINK-3
 ```
 
+---
+
+## Run: 2026-02-24 11:54:37 PST
+
+Run ID: unknown
+
+### Prompt
+
+```text
+PROJECT: FSS Vibe Command Hub
+Auto-history wrapper test: reply with AUTO-HISTORY-OK.
+
+```
+
+### Response
+
+```text
+AUTO-HISTORY-OK
+```
+

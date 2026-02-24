@@ -15,7 +15,22 @@ Primary file to browse:
 
 - `docs/chat-history/CODEX_CHAT_HISTORY.md`
 
-Append the latest run (timestamp + prompt + response):
+## Fully automatic mode (recommended)
+
+Use this wrapper for Codex runs:
+
+```bash
+./scripts/codex-run-auto-history.sh "PROJECT: FSS Vibe Command Hub
+<your instruction>"
+```
+
+It does both automatically:
+1. Runs Codex through the bridge
+2. Appends timestamp + prompt + response to `CODEX_CHAT_HISTORY.md`
+
+## Manual append (optional)
+
+If needed, append latest artifacts manually:
 
 ```bash
 ./scripts/append-codex-history.sh
@@ -23,12 +38,8 @@ Append the latest run (timestamp + prompt + response):
 
 ## Optional full rebuild
 
-If you ever want to regenerate the full timeline from all `*.prompt.txt` files:
+Regenerate full timeline from all `*.prompt.txt` files:
 
 ```bash
 ./scripts/update-codex-history.sh
 ```
-
-## Working rule
-
-After each important Codex run, append once so history stays easy to read in one place.
