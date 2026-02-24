@@ -7,19 +7,28 @@ Raw run artifacts live in:
 - `docs/chat-history/codex-runs/*.prompt.txt`
 - `docs/chat-history/codex-runs/*.response.txt`
 - `docs/chat-history/codex-runs/*.codex.log`
+- `docs/chat-history/codex-runs/latest.*` (latest run pointers)
 
-## Human-readable rollup
+## One readable append-only file
 
-Use this command to rebuild a single readable timeline:
+Primary file to browse:
+
+- `docs/chat-history/CODEX_CHAT_HISTORY.md`
+
+Append the latest run (timestamp + prompt + response):
+
+```bash
+./scripts/append-codex-history.sh
+```
+
+## Optional full rebuild
+
+If you ever want to regenerate the full timeline from all `*.prompt.txt` files:
 
 ```bash
 ./scripts/update-codex-history.sh
 ```
 
-Output file:
-
-- `docs/chat-history/CODEX_CHAT_HISTORY.md`
-
 ## Working rule
 
-After any important Codex run, regenerate the rollup so project chat context is easy to inspect.
+After each important Codex run, append once so history stays easy to read in one place.
