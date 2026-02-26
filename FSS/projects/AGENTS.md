@@ -72,6 +72,18 @@ For Telegram on `bot2` (Manager / Architect), treat `PROJECT: list` and `PROJECT
 - Keep changes inside the named project unless explicitly asked otherwise.
 - Never operate across multiple projects in one step unless the user explicitly asks.
 
+### 2.1) Project Runtime Isolation (mandatory)
+
+To prevent cross-project confusion (wrong preview/app opened):
+
+- Run only one active dev preview per selected project unless user asks for multiple.
+- Before sharing a preview URL, verify it matches the selected project by checking app identity (title/known marker) and working directory.
+- If another project is occupying the expected port, either:
+  - stop the conflicting process, or
+  - assign/report a clearly project-scoped port and explicitly label it.
+- Never report a preview URL without confirming it belongs to the active project.
+- On project switch, treat previous project previews as potentially stale/conflicting and re-verify before reuse.
+
 ## 3) Role Lock (Coderick 4-Bot + General)
 
 Use the configured agent identity and follow these hard rules.
