@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router';
 import { ShoppingCart, LogOut, User, Package, LayoutDashboard, Settings, Mail, MessageCircle } from 'lucide-react';
+import { PWAInstallBanner } from './PWAInstallBanner';
 
 export function Layout() {
   const [user, setUser] = useState<any>(null);
@@ -194,6 +195,9 @@ export function Layout() {
       <main>
         <Outlet context={{ user }} />
       </main>
+      
+      {/* PWA Banner */}
+      <PWAInstallBanner />
     </div>
   );
 }
