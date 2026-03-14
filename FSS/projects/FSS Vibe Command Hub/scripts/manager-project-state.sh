@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-STATE_DIR="${MANAGER_STATE_DIR:-$ROOT_DIR/.manager-state}"
+STATE_DIR="${MANAGER_STATE_DIR:-$ROOT_DIR/.manager-state/bot2/${MANAGER_CHAT_ID:-bot2-default}}"
 
 now_ts() {
   date '+%Y-%m-%d %H:%M:%S %Z'

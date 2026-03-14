@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-BRIDGE="/Users/paul/FSS/openclaw-ops/scripts/codex_hub_bridge.sh"
+BRIDGE="${MANAGER_BRIDGE_PATH:-$ROOT_DIR/scripts/manager-live-bridge.sh}"
 APPEND_SCRIPT="$ROOT_DIR/scripts/append-codex-history.sh"
 
 if [[ $# -lt 1 ]]; then

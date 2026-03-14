@@ -67,11 +67,6 @@ export default function AdminOrders() {
   const [notesText, setNotesText] = useState('');
 
   useEffect(() => {
-    console.log('AdminOrders: useEffect triggered');
-    console.log('AdminOrders: currentUser from context:', currentUser);
-    console.log('AdminOrders: currentUser role:', currentUser?.role);
-    console.log('AdminOrders: localStorage user:', localStorage.getItem('user'));
-    
     let userToCheck = currentUser;
     if (!userToCheck) {
       const storedUser = localStorage.getItem('user');
@@ -85,16 +80,13 @@ export default function AdminOrders() {
     }
     
     if (!userToCheck) {
-      console.log('No user found, redirecting to login');
       navigate('/login');
       return;
     }
     if (userToCheck.role !== 'admin') {
-      console.log('User is not admin (role:', userToCheck.role, '), redirecting to home');
       navigate('/');
       return;
     }
-    console.log('Admin access granted, loading data...');
     loadData();
     loadOrderStatuses();
   }, [currentUser, navigate]);

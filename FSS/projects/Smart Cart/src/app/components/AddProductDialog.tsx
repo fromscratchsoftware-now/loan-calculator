@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Sparkles, Loader2 } from "lucide-react";
 import type { CartItem } from "../pages/Cart";
-import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { projectId, publicAnonKey } from "../../utils/supabase/info";
 
 interface AddProductDialogProps {
   open: boolean;
@@ -338,10 +338,10 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
                 // Pharmacy & Health
                 'shampoo': ['Pharmacy', 'Personal Care'],
                 'nizoral': ['Pharmacy', 'Personal Care'],
-                'vitamin': ['Pharmacy', 'Supplements'],
-                'calcium': ['Pharmacy', 'Supplements'],
-                'magnesium': ['Pharmacy', 'Supplements'],
-                'zinc': ['Pharmacy', 'Supplements'],
+                'vitamin': ['Pharmacy', 'Vitamins'],
+                'calcium': ['Pharmacy', 'Minerals'],
+                'magnesium': ['Pharmacy', 'Minerals'],
+                'zinc': ['Pharmacy', 'Minerals'],
               };
               
               const newCategories: string[] = [];

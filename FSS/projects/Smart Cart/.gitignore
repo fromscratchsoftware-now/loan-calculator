@@ -2,4 +2,6 @@ node_modules/
 dist/
 .DS_Store
 .run/
-
+.env
+.env.*
+.vibe.env
