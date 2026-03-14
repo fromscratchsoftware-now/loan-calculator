@@ -1,7 +1,7 @@
 import { ShoppingCart, Package, Truck, CheckCircle, Chrome, Smartphone, ArrowRight } from "lucide-react";
 import { Link, useOutletContext } from "react-router";
 import { useState, useEffect } from "react";
-import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 
 export function Home() {
   const { user } = useOutletContext<{ user: any }>();

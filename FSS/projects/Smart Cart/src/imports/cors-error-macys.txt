@@ -1,0 +1,55 @@
+Access to fetch at 'https://www.macys.com/shop/product/lands-end-mens-long-sleeve-washable-merino-wool-v-neck-sweater?ID=19728125&swatchColor=Dark+evergreen' from origin 'https://7a4a9863-9c66-43bf-9e96-7548690e27b5-v2-figmaiframepreview.figma.site' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+www.macys.com/shop/product/lands-end-mens-long-sleeve-washable-merino-wool-v-neck-sweater?ID=19728125&swatchColor=Dark+evergreen:1  Failed to load resource: net::ERR_FAILEDUnderstand this error
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 Client-side fetch failed (likely CORS): Failed to fetch
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 ⚠️ Client-side extraction returned no data, trying server-side...
+extract-product:1  Failed to load resource: the server responded with a status of 403 ()Understand this error
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 ❌ No metadata extracted from either method
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 🔍 Starting auto-fill for: https://www.macys.com/shop/product/lands-end-mens-long-sleeve-washable-merino-wool-v-neck-sweater?ID=19728125&swatchColor=Dark+evergreen
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 📱 Attempting client-side extraction...
+cart:1 Access to fetch at 'https://www.macys.com/shop/product/lands-end-mens-long-sleeve-washable-merino-wool-v-neck-sweater?ID=19728125&swatchColor=Dark+evergreen' from origin 'https://7a4a9863-9c66-43bf-9e96-7548690e27b5-v2-figmaiframepreview.figma.site' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28  GET https://www.macys.com/shop/product/lands-end-mens-long-sleeve-washable-merino-wool-v-neck-sweater?ID=19728125&swatchColor=Dark+evergreen net::ERR_FAILED 200 (OK)
+(anonymous) @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28
+extractMetadataClientSide @ AddProductDialog.tsx:85
+autoFillFromUrl @ AddProductDialog.tsx:44
+y @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+i @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28
+iG @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+ij @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+iz @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+dP @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dM @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dk @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dG @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+(anonymous) @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+SR @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+iR @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+d$ @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+lO @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+lN @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+lv @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+i @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28Understand this error
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 Client-side fetch failed (likely CORS): Failed to fetch
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 ⚠️ Client-side extraction returned no data, trying server-side...
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28  POST https://wmvbmbhrhetkplqitvlw.supabase.co/functions/v1/make-server-23b9846d/extract-product 403 (Forbidden)
+(anonymous) @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28
+extractMetadataServerSide @ AddProductDialog.tsx:106
+autoFillFromUrl @ AddProductDialog.tsx:51
+await in autoFillFromUrl
+y @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+i @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28
+iG @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+ij @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+iz @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+dP @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dM @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dk @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+dG @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+(anonymous) @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+SR @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+iR @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+d$ @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:89
+lO @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+lN @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+lv @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:77
+i @ code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28Understand this error
+code_components_preview_iframe-ab9bdbe29389ccb5.min.js.br:28 ❌ No metadata extracted from either method

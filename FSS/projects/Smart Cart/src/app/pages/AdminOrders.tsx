@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Search, Package, DollarSign, Send, Plus, X, Trash2, Save, LogOut, Settings, ExternalLink } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 import { toast } from 'sonner';
 import Select from 'react-select';
 import { getOrderStatuses, getStatusColor } from '../utils/orderStatuses';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, User, LogOut, Filter, DollarSign, Send, Plus, X, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 import { toast } from 'sonner';
 import Select from 'react-select';
 import { ExportButtons } from '../components/ExportButtons';

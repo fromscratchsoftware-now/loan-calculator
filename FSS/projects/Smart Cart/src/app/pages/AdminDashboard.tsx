@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, UserCog, Search, LogOut, Settings, ShoppingCart, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 import { toast } from 'sonner';
 
 interface User {

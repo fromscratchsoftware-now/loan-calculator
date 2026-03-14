@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router";
 import { LayoutDashboard, Save, ArrowLeft, Image as ImageIcon, Type, AlignLeft, CheckCircle, Chrome, Smartphone, Truck, Package, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 
 interface HomePageData {
   heroTitle: string;

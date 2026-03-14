@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { UserPlus, Mail, Phone, CheckCircle } from 'lucide-react';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 import { toast } from 'sonner';
 
 export default function Signup() {

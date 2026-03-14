@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Navigate, useNavigate } from "react-router";
-import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { projectId, publicAnonKey } from "@/utils/supabase/info";
 
 interface PageContent {
   id: string;
