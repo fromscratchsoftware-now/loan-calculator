@@ -243,14 +243,6 @@ export function Home() {
                   <button className="bg-white text-indigo-700 font-medium px-6 py-3 rounded-lg hover:bg-indigo-50 transition-colors inline-flex items-center gap-2">
                     {homeData.extBtn}
                   </button>
-                  <button 
-                    className="text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-colors font-medium"
-                    onClick={() => {
-                      alert("The SmartCart extension lives in your browser toolbar. When you're on a product page, simply click the extension icon to instantly extract the product's details and add it to your SmartCart.");
-                    }}
-                  >
-                    Learn More
-                  </button>
                 </div>
               </div>
 
