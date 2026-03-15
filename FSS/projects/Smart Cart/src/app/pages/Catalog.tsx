@@ -21,10 +21,11 @@ export function Catalog() {
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    // Load catalog from localStorage
-    const savedCatalog = localStorage.getItem('catalog');
-    if (savedCatalog) {
-      let parsed = JSON.parse(savedCatalog);
+    const loadCatalogData = () => {
+      // Load catalog from localStorage
+      const savedCatalog = localStorage.getItem('catalog');
+      if (savedCatalog && JSON.parse(savedCatalog).length > 0) {
+        let parsed = JSON.parse(savedCatalog);
       
       // Auto-migrate broken amazon image URLs from older sessions
       let modified = false;
@@ -99,14 +100,27 @@ export function Catalog() {
         }
       ];
       setCatalog(initialDemoCatalog);
-      localStorage.setItem('catalog', JSON.stringify(initialDemoCatalog));
-      
+      // DO NOT write to localStorage here to avoid overwriting global cloud database on new clients
+      // localStorage.setItem('catalog', JSON.stringify(initialDemoCatalog));
       const allCategories = new Set<string>();
       initialDemoCatalog.forEach(item => {
         item.categories.forEach(c => allCategories.add(c));
       });
       setCategories(Array.from(allCategories).sort());
     }
+  };
+
+  loadCatalogData();
+
+  // Listen for Database Sync hydration
+    const handleDbHydrated = () => {
+      loadCatalogData();
+    };
+    window.addEventListener('db_hydrated', handleDbHydrated);
+    
+    return () => {
+      window.removeEventListener('db_hydrated', handleDbHydrated);
+    };
   }, []);
 
   const handleAddToCart = (item: CatalogItem) => {

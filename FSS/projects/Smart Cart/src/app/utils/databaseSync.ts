@@ -30,6 +30,9 @@ export class DatabaseSync {
             localStorage.setItem(row.key, stringVal); 
           }
         });
+        
+        // Notify app that global database states are ready
+        window.dispatchEvent(new Event('db_hydrated'));
       }
     } catch (e) {
       console.error("Database Hydration Error:", e);

@@ -47,6 +47,16 @@ export function AdminCatalog() {
     }
 
     loadData();
+
+    // Listen for Database Sync hydration
+    const handleDbHydrated = () => {
+      loadData();
+    };
+    window.addEventListener('db_hydrated', handleDbHydrated);
+    
+    return () => {
+      window.removeEventListener('db_hydrated', handleDbHydrated);
+    };
   }, [currentUser, navigate]);
 
   const loadData = () => {
@@ -118,7 +128,8 @@ export function AdminCatalog() {
         }
       ];
       setCatalog(initialDemoCatalog);
-      localStorage.setItem('catalog', JSON.stringify(initialDemoCatalog));
+      // DO NOT write to localStorage here to avoid overwriting global cloud database on new clients
+      // localStorage.setItem('catalog', JSON.stringify(initialDemoCatalog));
     }
     setLoading(false);
   };
