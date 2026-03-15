@@ -95,6 +95,10 @@ chrome.action.onClicked.addListener(async (tab) => {
                   try {
                       const elements = document.querySelectorAll(selector);
                       for (const el of elements) {
+                          // Skip prices inside sponsored banners or related carousels
+                          const isBadParent = el.closest('[class*="sponsor" i], [class*="banner" i], [class*="carousel" i], [class*="recommend" i], [id*="recommend" i], [class*="similar" i], li');
+                          if (isBadParent) continue;
+
                           const text = el.textContent?.trim() || '';
                           const dataPrice = el.getAttribute('data-product-price') || el.getAttribute('data-price');
                           if (dataPrice) {
@@ -131,20 +135,27 @@ chrome.action.onClicked.addListener(async (tab) => {
               ];
               for (const selector of imgSelectors) {
                   try {
-                      const img = document.querySelector(selector);
-                      if (img) {
+                      const elements = document.querySelectorAll(selector);
+                      for (const img of elements) {
+                          const isBadParent = img.closest('[class*="sponsor" i], [class*="banner" i], [class*="carousel" i], [class*="recommend" i], [id*="recommend" i], [class*="similar" i], li');
+                          if (isBadParent) continue;
+
                           const src = img.getAttribute('src');
                           if (src && !src.includes('data:image') && !src.includes('placeholder') && !src.includes('1x1')) {
                               data.imageUrl = src;
                               break;
                           }
                       }
+                      if (data.imageUrl) break;
                   } catch (e) {}
               }
               // Generic fallback to biggest image
               if (!data.imageUrl) {
                   const imgs = document.querySelectorAll('img[src]');
                   for (const img of imgs) {
+                      const isBadParent = img.closest('[class*="sponsor" i], [class*="banner" i], [class*="carousel" i], [class*="recommend" i], [id*="recommend" i], [class*="similar" i], li');
+                      if (isBadParent) continue;
+
                       const src = img.getAttribute('src');
                       if (src && !src.includes('data:image') && !src.includes('placeholder') && img.width > 200) {
                           data.imageUrl = src;
