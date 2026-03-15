@@ -10,7 +10,8 @@ export function Layout() {
     showEmail: true,
     businessEmail: 'support@smartcart.com',
     showWhatsapp: true,
-    whatsappNumber: '+1234567890'
+    whatsappNumber: '+1234567890',
+    footerText: 'Shopping Assistant Powered by UgUnlocked',
   });
   const navigate = useNavigate();
   const location = useLocation();
@@ -202,7 +203,7 @@ export function Layout() {
       {/* Footer */}
       <footer className="bg-gray-50 py-8 border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-          <p className="mb-2">&copy; {new Date().getFullYear()} Shopping Assistant Powered by UgUnlocked.</p>
+          <p className="mb-2">&copy; {new Date().getFullYear()} {config.footerText || 'Shopping Assistant Powered by UgUnlocked'}.</p>
           <div className="flex justify-center gap-4">
             <Link to="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
           </div>

@@ -17,6 +17,7 @@ interface AdminConfig {
   showWhatsapp: boolean;
   businessEmail: string;
   showEmail: boolean;
+  footerText: string;
   orderStatuses: OrderStatus[];
   paymentOptions: {
     paypal: {
@@ -66,6 +67,7 @@ const DEFAULT_CONFIG: AdminConfig = {
   showWhatsapp: true,
   businessEmail: "support@smartcart.com",
   showEmail: true,
+  footerText: "Shopping Assistant Powered by UgUnlocked",
   orderStatuses: [
     { id: '1', name: 'Order placed by customer', color: 'yellow' },
     { id: '2', name: 'Processing', color: 'blue' },
@@ -308,6 +310,23 @@ export function AdminSettings() {
               This email will be used for customer contact links
             </p>
           </div>
+        </div>
+
+        {/* Footer Text */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Footer Text
+          </label>
+          <input
+            type="text"
+            value={config.footerText || DEFAULT_CONFIG.footerText}
+            onChange={(e) => setConfig({ ...config, footerText: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Shopping Assistant Powered by UgUnlocked"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            This text will be displayed in the footer next to the copyright year across the entire site.
+          </p>
         </div>
 
         {/* Order Statuses */}
