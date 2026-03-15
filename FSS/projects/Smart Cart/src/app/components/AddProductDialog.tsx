@@ -552,9 +552,14 @@ export function AddProductDialog({ open, onOpenChange, onAdd, initialUrl, initia
         // Handle expected errors gracefully - show in-page message
         if (response.status === 403 || data.error?.includes("403") || data.error?.includes("Forbidden") || data.error?.includes("blocking")) {
           console.warn(`🔒 Website blocking extraction: ${data.error}`);
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          const fallbackAction = isMobile 
+            ? "install our Web App to your home screen and use the 'Share' feature directly from your browser!" 
+            : "rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!";
+            
           setExtractionMessage({ 
             type: 'warning', 
-            text: '🔒 Unable to extract pricing automatically due to enterprise firewalls (e.g. iHerb, Amazon). Please manually type the price/title, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!' 
+            text: `🔒 Unable to extract pricing automatically due to enterprise firewalls (e.g. iHerb, Amazon). Please manually type the price/title, or ${fallbackAction}` 
           });
           // Return empty object to prevent further error messages
           return { extracted: false };
@@ -605,6 +610,16 @@ export function AddProductDialog({ open, onOpenChange, onAdd, initialUrl, initia
       // Cleanup duplicate checkmarks
       if (finalWarning && finalWarning.startsWith("✅ ")) {
         finalWarning = finalWarning.substring(3);
+      }
+      
+      if (finalWarning) {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          finalWarning = finalWarning.replace(
+            "rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!",
+            "install our Web App to your home screen and use the 'Share' feature directly from your browser!"
+          );
+        }
       }
       
       mergedData.warning = finalWarning;
