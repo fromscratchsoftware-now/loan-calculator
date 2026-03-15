@@ -671,6 +671,9 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
 
     // Fetch the URL with proper headers to avoid being blocked
     let response;
+    let html = "";
+    let nativeFetchFailed = false;
+
     try {
       response = await fetch(fetchUrl, {
         headers: {
@@ -693,139 +696,94 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         },
         redirect: "follow",
       });
-    } catch (fetchError) {
-      // Check if it's an HTTP/2 error - this is expected for sites with strict security
-      if (fetchError.message.includes('http2 error') || fetchError.message.includes('protocol error')) {
-        console.log(`Protocol restriction detected for ${validUrl.hostname} (expected - site has strict security)`);
-        
-        // For eBay, return normalized URL and store name
-        if (validUrl.hostname.includes('ebay.com')) {
-          const itemIdMatch = validUrl.pathname.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
-          if (itemIdMatch && itemIdMatch[1]) {
-            console.log(`eBay protocol error - returning item ID: ${itemIdMatch[1]}`);
-            return c.json({ 
-              name: null,
-              imageUrl: null,
-              price: null,
-              store: 'eBay',
-              description: null,
-              url: fetchUrl,
-              warning: `✅ eBay URL saved (item #${itemIdMatch[1]}). eBay blocked automated extraction. Please visit the page and manually enter: product name, price, and right-click image → "Copy image address" to paste here.`
-            });
-          }
-        }
-        
-        // For iHerb, return extracted product name from URL even with protocol error
-        if (iherbProductName) {
-          console.log(`Returning iHerb product name from URL despite protocol error`);
-          return c.json({ 
-            name: iherbProductName,
-            imageUrl: null,
-            price: null,
-            store: 'iHerb',
-            description: null,
-            url: url,
-            warning: 'Product name extracted from URL. iHerb blocked automated request. Please manually enter the price and image URL.'
-          });
-        }
-        
-        return c.json({ 
-          error: `Unable to access ${validUrl.hostname} due to protocol restrictions. Please manually enter product details.`,
-          details: 'This website has strict security measures that prevent automated access.'
-        }, 400);
-      }
       
-      // Other network errors
+      if (!response.ok) {
+         nativeFetchFailed = true;
+         console.log(`Website blocked request: ${url} (Status ${response.status})`);
+      } else {
+         html = await response.text();
+         
+         const captchaIndicators = [
+            /robot or human/i,
+            /please verify you are a human/i,
+            /access denied/i,
+            /security check/i,
+            /enable javascript/i,
+            /enable cookies/i,
+            /captcha/i,
+            /cloudflare/i,
+            /just a moment/i,
+            /checking your browser/i,
+         ];
+          
+         for (const indicator of captchaIndicators) {
+            if (indicator.test(html)) {
+                console.log(`Bot detection page detected for: ${url}`);
+                nativeFetchFailed = true;
+                break;
+            }
+         }
+      }
+    } catch (fetchError) {
       console.log(`Network error accessing ${url}: ${fetchError.message}`);
+      nativeFetchFailed = true;
+    }
+
+    if (nativeFetchFailed) {
+       const browserlessToken = Deno.env.get('BROWSERLESS_TOKEN');
+       if (browserlessToken) {
+           console.log(`Native fetch failed or bot detected, trying Browserless fallback ...`);
+           try {
+               const bReq = await fetch(`https://chrome.browserless.io/content?token=${browserlessToken}&stealth=true`, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({
+                       url: fetchUrl,
+                       gotoOptions: { waitUntil: 'domcontentloaded' }
+                   })
+               });
+               if (bReq.ok) {
+                   html = await bReq.text();
+                   nativeFetchFailed = false; // Successfully acquired HTML
+                   console.log(`Browserless fallback succeeded.`);
+               } else {
+                   console.log(`Browserless fallback failed with status ${bReq.status}`);
+               }
+           } catch (err) {
+               console.log(`Browserless fallback error: ${err.message}`);
+           }
+       } else {
+           console.log("No Browserless token configured, cannot fallback.");
+       }
+    }
+
+    // Process ultimate failures if we still couldn't get HTML
+    if (nativeFetchFailed) {
+      // Provide helpful error message based on status code
       
       // For eBay, return normalized URL and store name
       if (validUrl.hostname.includes('ebay.com')) {
         const itemIdMatch = validUrl.pathname.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
         if (itemIdMatch && itemIdMatch[1]) {
-          console.log(`eBay network error - returning item ID: ${itemIdMatch[1]}`);
           return c.json({ 
-            name: null,
-            imageUrl: null,
-            price: null,
-            store: 'eBay',
-            description: null,
-            url: fetchUrl,
-            warning: `✅ eBay URL saved (item #${itemIdMatch[1]}). Network error occurred. Please visit the page and manually enter: product name, price, and right-click image → "Copy image address" to paste here.`
+            name: null, imageUrl: null, price: null, store: 'eBay', description: null, url: fetchUrl,
+            warning: `✅ eBay URL saved. eBay blocked automated extraction. Please visit the page and manually enter: product name, price, and image address.`
           });
         }
       }
       
-      // For iHerb, return extracted product name from URL even with network error
-      if (iherbProductName) {
-        console.log(`Returning iHerb product name from URL despite network error`);
+      // For iHerb, return extracted product name from URL
+      if (typeof iherbProductName !== "undefined" && iherbProductName) {
         return c.json({ 
-          name: iherbProductName,
-          imageUrl: null,
-          price: null,
-          store: 'iHerb',
-          description: null,
-          url: url,
+          name: iherbProductName, imageUrl: null, price: null, store: 'iHerb', description: null, url: url,
           warning: 'Product name extracted from URL. iHerb blocked automated request. Please manually enter the price and image URL.'
         });
       }
       
-      return c.json({ 
-        error: `Unable to access the website. The site may be blocking automated requests.`,
-        details: fetchError.message 
-      }, 400);
+      const statusText = response && response.status === 403 ? "403 Forbidden" : (response?.status || 400);
+      return c.json({ error: `Website is blocking automated requests (${statusText}). Please manually enter product details.`, statusCode: response?.status || 400 }, 400);
     }
 
-    if (!response.ok) {
-      // Log only unexpected errors (not 403 which is expected for some sites)
-      if (response.status !== 403) {
-        console.error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
-      } else {
-        console.log(`Website blocking request: ${url} (403 Forbidden - expected behavior)`);
-      }
-      
-      // For eBay, return normalized URL and store name even if fetch fails
-      if (validUrl.hostname.includes('ebay.com')) {
-        const itemIdMatch = validUrl.pathname.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
-        if (itemIdMatch && itemIdMatch[1]) {
-          console.log(`eBay ${response.status} error - returning item ID: ${itemIdMatch[1]}`);
-          return c.json({ 
-            name: null,
-            imageUrl: null,
-            price: null,
-            store: 'eBay',
-            description: null,
-            url: fetchUrl,
-            warning: `✅ eBay URL saved (item #${itemIdMatch[1]}). eBay blocked automated extraction (${response.status}). Please visit the page and manually enter: product name, price, and right-click image → "Copy image address" to paste here.`
-          });
-        }
-      }
-      
-      // For iHerb, return extracted product name from URL even if fetch fails with 403
-      if (iherbProductName) {
-        console.log(`Returning iHerb product name from URL despite ${response.status} error`);
-        return c.json({ 
-          name: iherbProductName,
-          imageUrl: null,
-          price: null,
-          store: 'iHerb',
-          description: null,
-          url: url,
-          warning: 'Product name extracted from URL. iHerb blocked automated request. Please manually enter the price and image URL.'
-        });
-      }
-      
-      // Provide helpful error message based on status code
-      let errorMessage = `Failed to fetch URL: ${response.statusText}`;
-      if (response.status === 403) {
-        errorMessage = `Website is blocking automated requests (403 Forbidden). Please manually enter product details.`;
-      } else if (response.status === 503 || response.status === 429) {
-        errorMessage = `Website is rate limiting requests. Please try again in a moment or enter details manually.`;
-      }
-      
-      return c.json({ error: errorMessage, statusCode: response.status }, 400);
-    }
-
-    const html = await response.text();
 
     // Parse HTML into DOM for more reliable extraction
     const { document } = parseHTML(html);
