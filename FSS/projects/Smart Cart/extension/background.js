@@ -4,12 +4,20 @@ chrome.action.onClicked.addListener(async (tab) => {
     
     try {
       // Inject script to extract data locally from the DOM
+      // This approach completely bypasses Cloudflare/Akamai/WAF because it
+      // runs directly in the user's browser where they have already passed all CAPTCHAs
       const injectionResults = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => {
           const data = { name: null, price: null, imageUrl: null };
 
-          // 1. Try JSON-LD
+          // HELPER: Get clean text
+          const cleanText = (str) => {
+             if (!str) return "";
+             return str.replace(/\s+/g, ' ').trim();
+          };
+
+          // 1. Try JSON-LD (Most reliable for E-commerce)
           const scripts = document.querySelectorAll('script[type="application/ld+json"]');
           for (const script of scripts) {
               try {
@@ -46,10 +54,13 @@ chrome.action.onClicked.addListener(async (tab) => {
           };
 
           if (!data.name) data.name = getMeta("og:title") || document.title;
-          if (!data.imageUrl) data.imageUrl = getMeta("og:image");
+          if (!data.imageUrl) data.imageUrl = getMeta("og:image") || getMeta("twitter:image");
           if (!data.price) {
-              const priceMeta = getMeta("product:price:amount");
-              if (priceMeta) data.price = parseFloat(priceMeta);
+              const priceMeta = getMeta("product:price:amount") || getMeta("price");
+              if (priceMeta) {
+                  const pMatch = priceMeta.match(/[\d,]+\.?\d*/);
+                  if (pMatch) data.price = parseFloat(pMatch[0].replace(/,/g, ''));
+              }
           }
 
           // 3. Amazon specific site scraping
@@ -72,23 +83,80 @@ chrome.action.onClicked.addListener(async (tab) => {
               }
           }
 
-          // 4. Try generic DOM scraping for price if still missing
+          // 4. Robust DOM traversal for Price (Bypasses rendering firewalls)
           if (!data.price) {
-            // AcmeTools specifically puts price in some elements.
-            // Let's grab it by regex on the body text if we're desperate, but looking at standard classes is better.
-            const priceEl = document.querySelector('.price, [itemprop="price"], .product-price');
-            if (priceEl) {
-               // Use simpler regex to avoid escaping issues: search for $ followed by optional space then digits
-               const text = priceEl.textContent || '';
-               const dollarIdx = text.indexOf('$');
-               if (dollarIdx !== -1) {
-                  const priceStr = text.substring(dollarIdx + 1).match(/[0-9,]+\.[0-9]{2}/);
-                  if (priceStr && priceStr[0]) {
-                     data.price = parseFloat(priceStr[0].replace(/,/g, ''));
-                  }
-               }
-            }
+              const priceSelectors = [
+                  '[data-test-id*="price"]', '[id*="price"]', '[class*="price"]',
+                  '[itemprop="price"]', '.product-price', '#product-price', '.price',
+                  '[data-price]', 'span.sales', '.prices .sales', '[data-product-price]'
+              ];
+              for (const selector of priceSelectors) {
+                  try {
+                      const elements = document.querySelectorAll(selector);
+                      for (const el of elements) {
+                          const text = el.textContent?.trim() || '';
+                          const dataPrice = el.getAttribute('data-product-price') || el.getAttribute('data-price');
+                          if (dataPrice) {
+                              const testPrice = parseFloat(dataPrice.replace(/,/g, ""));
+                              if (testPrice > 0 && testPrice < 1000000) {
+                                  data.price = testPrice;
+                                  break;
+                              }
+                          }
+                          const priceMatch = text.match(/\$\s*([\d,]+\.?\d*)/) || text.match(/([\d,]+\.\d{2})/);
+                          if (priceMatch && priceMatch[1]) {
+                              const testPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
+                              if (testPrice > 0 && testPrice < 1000000) {
+                                  data.price = testPrice;
+                                  break;
+                              }
+                          }
+                      }
+                      if (data.price) break;
+                  } catch (e) {}
+              }
           }
+          
+          // 5. Robust DOM traversal for Image
+          if (!data.imageUrl) {
+              const imgSelectors = [
+                  'img[class*="product"]', 'img[id*="product"]', 
+                  'img[class*="main"]', 'img[data-test-id*="image"]',
+                  '.gallery img', '.product-image img'
+              ];
+              for (const selector of imgSelectors) {
+                  try {
+                      const img = document.querySelector(selector);
+                      if (img) {
+                          const src = img.getAttribute('src');
+                          if (src && !src.includes('data:image') && !src.includes('placeholder') && !src.includes('1x1')) {
+                              data.imageUrl = src;
+                              break;
+                          }
+                      }
+                  } catch (e) {}
+              }
+              // Generic fallback to biggest image
+              if (!data.imageUrl) {
+                  const imgs = document.querySelectorAll('img[src]');
+                  for (const img of imgs) {
+                      const src = img.getAttribute('src');
+                      if (src && !src.includes('data:image') && !src.includes('placeholder') && img.width > 200) {
+                          data.imageUrl = src;
+                          break;
+                      }
+                  }
+              }
+          }
+
+          // Make image absolute
+          if (data.imageUrl && !data.imageUrl.startsWith("http")) {
+             try {
+                data.imageUrl = new URL(data.imageUrl, window.location.href).toString();
+             } catch(e) {}
+          }
+          
+          if (data.name) data.name = cleanText(data.name);
 
           return data;
         }
@@ -110,8 +178,6 @@ chrome.action.onClicked.addListener(async (tab) => {
     
     const smartCartUrl = `http://localhost:5173/add-from-share?${params.toString()}`;
     
-    // Just create a new tab since we dropped the 'tabs' permission
-    // to vastly speed up Chrome Web Store review time.
     chrome.tabs.create({ url: smartCartUrl, active: true });
   }
 });
