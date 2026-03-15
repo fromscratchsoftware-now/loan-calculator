@@ -1133,7 +1133,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
     if (jsonLd) {
       if (jsonLd["@type"] === "Product" || jsonLd["@type"] === "Book") {
         productName = productName || jsonLd.name;
-        productImage = productImage || jsonLd.image?.[0] || jsonLd.image;
+        productImage = productImage || (Array.isArray(jsonLd.image) ? jsonLd.image[0] : jsonLd.image);
         
         if (jsonLd.offers) {
           const offer = Array.isArray(jsonLd.offers) ? jsonLd.offers[0] : jsonLd.offers;
@@ -1143,7 +1143,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         const product = jsonLd["@graph"].find((item: any) => item["@type"] === "Product" || item["@type"] === "Book");
         if (product) {
           productName = productName || product.name;
-          productImage = productImage || product.image?.[0] || product.image;
+          productImage = productImage || (Array.isArray(product.image) ? product.image[0] : product.image);
           
           if (product.offers) {
             const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
