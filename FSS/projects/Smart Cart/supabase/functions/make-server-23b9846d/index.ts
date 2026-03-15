@@ -1353,8 +1353,10 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
       productName.toLowerCase().includes('just a moment')
     );
 
-    if (isBotTitle && !productPrice && !productImage) {
-      console.log(`Hidden bot challenge page detected from title: ${productName}`);
+    const isCompletelyEmpty = !productName && !productPrice && !productImage;
+
+    if ((isBotTitle && !productPrice && !productImage) || isCompletelyEmpty) {
+      console.log(`Hidden bot challenge page or completely empty payload detected: ${productName || 'null'}`);
       return c.json({
         name: null,
         imageUrl: null,
