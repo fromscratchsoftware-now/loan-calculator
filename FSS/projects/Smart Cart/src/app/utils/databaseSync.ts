@@ -1,13 +1,8 @@
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
 
-// Determine if we are in production
-const isLive = (import.meta as any).env.PROD;
-
 export class DatabaseSync {
   static async initialize() {
-    if (!isLive) return;
-    
-    console.log("🟢 Live deployment detected. Hydrating locally from Database...");
+    console.log("🟢 DatabaseSync active. Hydrating locally from Database...");
     
     try {
       // Hydrate all keys from Supabase kv_store
@@ -42,8 +37,6 @@ export class DatabaseSync {
   }
 
   static hookLocalStorage() {
-    if (!isLive) return;
-
     const originalSetItem = window.localStorage.setItem;
     const originalRemoveItem = window.localStorage.removeItem;
 
