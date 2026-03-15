@@ -706,14 +706,12 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
          const captchaIndicators = [
             /robot or human/i,
             /please verify you are a human/i,
+            /access to this page has been denied/i,
             /access denied/i,
-            /security check/i,
-            /enable javascript/i,
-            /enable cookies/i,
-            /captcha/i,
-            /cloudflare/i,
+            /datadome/i,
             /just a moment/i,
             /checking your browser/i,
+            /attention required/i,
          ];
           
          for (const indicator of captchaIndicators) {
@@ -793,14 +791,12 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
     const captchaIndicators = [
       /robot or human/i,
       /please verify you are a human/i,
+      /access to this page has been denied/i,
       /access denied/i,
-      /security check/i,
-      /enable javascript/i,
-      /enable cookies/i,
-      /captcha/i,
-      /cloudflare/i,
+      /datadome/i,
       /just a moment/i,
       /checking your browser/i,
+      /attention required/i,
     ];
 
     for (const indicator of captchaIndicators) {
