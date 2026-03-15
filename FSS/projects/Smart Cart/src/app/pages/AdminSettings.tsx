@@ -133,6 +133,9 @@ export function AdminSettings() {
     const saved = localStorage.getItem("adminConfig");
     if (saved) {
       setConfig(JSON.parse(saved));
+      
+      // Forcefully auto-sync previously cached settings up to Supabase
+      localStorage.setItem('adminConfig', saved);
     }
   }, [user, navigate]);
 
