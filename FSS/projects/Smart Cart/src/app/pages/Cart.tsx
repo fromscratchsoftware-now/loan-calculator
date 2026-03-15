@@ -181,12 +181,23 @@ export function Cart() {
           price: Number(product.price) || 0,
           imageUrl: product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
           store: product.store || 'Unknown',
-          categories: ['Miscellaneous'], // Admin can categorize later
+          // Admin can categorize later
           addedAt: new Date().toISOString()
         };
         
         const updatedCatalog = [newCatalogItem, ...catalog];
         localStorage.setItem('catalog', JSON.stringify(updatedCatalog));
+        
+        // Force the new bypass DatabaseSync hook just in case to make sure 
+        // local customer scrapings reach the global cloud immediately!
+        if ((window as any).DatabaseSync) {
+           (window as any).DatabaseSync.persistToDB('catalog', JSON.stringify(updatedCatalog));
+        } else {
+           // Import on the fly if needed
+           import('../utils/databaseSync').then(({ DatabaseSync }) => {
+             DatabaseSync.persistToDB('catalog', JSON.stringify(updatedCatalog));
+           }).catch(() => {});
+        }
       }
     } catch (err) {
       console.error("Failed to sync scraped product to global catalog:", err);
