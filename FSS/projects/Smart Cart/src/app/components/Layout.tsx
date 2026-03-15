@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router';
-import { ShoppingCart, LogOut, User, Package, LayoutDashboard, Settings, Mail, MessageCircle } from 'lucide-react';
+import { Home, LogOut, User, Package, LayoutDashboard, Settings, Mail, MessageCircle } from 'lucide-react';
 import { PWAInstallBanner } from './PWAInstallBanner';
 
 export function Layout() {
@@ -74,11 +74,11 @@ export function Layout() {
             <div className="flex justify-between items-center h-16">
               {/* Logo */}
               <Link to="/" className="flex items-center gap-2">
-                <ShoppingCart className="w-8 h-8 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">SmartCart</span>
+                <Home className="w-8 h-8 text-blue-600" />
+                <span className="text-xl font-bold text-gray-900 hidden sm:block">SmartCart</span>
               </Link>
               
-              <Link to="/catalog" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-bold transition-all ml-4 mr-auto border border-blue-200 shadow-sm">
+              <Link to="/catalog" className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-bold transition-all ml-4 mr-auto border border-blue-200 shadow-sm text-sm sm:text-base">
                 Catalog
               </Link>
 

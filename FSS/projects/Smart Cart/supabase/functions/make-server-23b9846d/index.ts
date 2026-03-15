@@ -613,6 +613,14 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
       if (mainDomain.toLowerCase() === 'ebay') formattedName = 'eBay';
       if (mainDomain.toLowerCase() === 'etsy') formattedName = 'Etsy';
       
+      // Known short-link resolvers
+      const fullHostname = urlObj.hostname.toLowerCase();
+      if (fullHostname === 'a.co' || fullHostname === 'amzn.to' || mainDomain.toLowerCase() === 'amazon') {
+         formattedName = 'Amazon';
+      } else if (fullHostname === 'walmrt.us' || mainDomain.toLowerCase() === 'walmart') {
+         formattedName = 'Walmart';
+      }
+      
       return formattedName;
     };
 
