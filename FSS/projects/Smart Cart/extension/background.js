@@ -216,6 +216,21 @@ chrome.action.onClicked.addListener(async (tab) => {
     
     const smartCartUrl = `http://localhost:5173/add-from-share?${params.toString()}`;
     
-    chrome.tabs.create({ url: smartCartUrl, active: true });
+    chrome.tabs.query({}, (tabs) => {
+      // Find any existing tab that contains the smart cart URL
+      const existingTab = tabs.find(t => t.url && (
+        t.url.includes('localhost:5173') || 
+        t.url.includes('markdown-file-editor.fromscratchsoftware.net')
+      ));
+
+      if (existingTab) {
+        // Update URL to trigger the push, and focus the window/tab
+        chrome.tabs.update(existingTab.id, { url: smartCartUrl, active: true });
+        chrome.windows.update(existingTab.windowId, { focused: true });
+      } else {
+        // No smart cart found, open a fresh tab
+        chrome.tabs.create({ url: smartCartUrl, active: true });
+      }
+    });
   }
 });
