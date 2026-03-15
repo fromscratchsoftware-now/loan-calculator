@@ -52,7 +52,27 @@ chrome.action.onClicked.addListener(async (tab) => {
               if (priceMeta) data.price = parseFloat(priceMeta);
           }
 
-          // 3. Try generic DOM scraping for price if still missing
+          // 3. Amazon specific site scraping
+          if (document.location.hostname.includes("amazon.")) {
+              const azPrice = document.querySelector('.a-price .a-offscreen, #corePriceDisplay_desktop_feature_div .a-price .a-offscreen, #priceblock_ourprice, #priceblock_dealprice');
+              if (azPrice) {
+                  const text = azPrice.textContent.trim();
+                  const match = text.match(/[\d,]+\.\d{2}/);
+                  if (match) {
+                      data.price = parseFloat(match[0].replace(/,/g, ''));
+                  }
+              }
+              const azTitle = document.querySelector('#productTitle');
+              if (azTitle && !data.name) {
+                  data.name = azTitle.textContent.trim();
+              }
+              const azImg = document.querySelector('#landingImage');
+              if (azImg && !data.imageUrl) {
+                  data.imageUrl = azImg.getAttribute('src');
+              }
+          }
+
+          // 4. Try generic DOM scraping for price if still missing
           if (!data.price) {
             // AcmeTools specifically puts price in some elements.
             // Let's grab it by regex on the body text if we're desperate, but looking at standard classes is better.
@@ -90,21 +110,8 @@ chrome.action.onClicked.addListener(async (tab) => {
     
     const smartCartUrl = `http://localhost:5173/add-from-share?${params.toString()}`;
     
-    chrome.tabs.query({ url: "http://localhost:5173/*" }, (tabs) => {
-      if (tabs && tabs.length > 0) {
-        // We found an existing tab! Let's update it to the new URL silently
-        const existingTab = tabs[0];
-        
-        // Update its URL without making it active
-        chrome.tabs.update(existingTab.id, { 
-          url: smartCartUrl,
-          active: false // Prevent stealing focus
-        });
-        
-      } else {
-        // No existing Smart Cart tab found, so open a new one silently
-        chrome.tabs.create({ url: smartCartUrl, active: false });
-      }
-    });
+    // Just create a new tab since we dropped the 'tabs' permission
+    // to vastly speed up Chrome Web Store review time.
+    chrome.tabs.create({ url: smartCartUrl, active: true });
   }
 });

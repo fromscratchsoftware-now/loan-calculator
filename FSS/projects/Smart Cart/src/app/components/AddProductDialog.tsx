@@ -723,6 +723,34 @@ export function AddProductDialog({ open, onOpenChange, onAdd, initialUrl, initia
         }
       }
     }
+    // Amazon specific overrides using DOM parsing to avoid matching zip codes
+    if (urlObj.hostname.includes('amazon.')) {
+        try {
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const azPriceElements = doc.querySelectorAll('.a-price .a-offscreen, #corePriceDisplay_desktop_feature_div .a-price .a-offscreen, #priceblock_ourprice');
+            for (const azPrice of Array.from(azPriceElements)) {
+                if (azPrice && azPrice.textContent) {
+                    const text = azPrice.textContent.trim();
+                    const match = text.match(/[\d,]+\.\d{2}/);
+                    if (match) {
+                        productPrice = match[0].replace(/,/g, '');
+                        console.log("💰 Found price via Amazon specific DOM parsing:", productPrice);
+                        break;
+                    }
+                }
+            }
+            if (!productImage) {
+               const azImg = doc.querySelector('#landingImage');
+               if (azImg) productImage = azImg.getAttribute('src');
+            }
+            if (!productName) {
+               const azTitle = doc.querySelector('#productTitle');
+               if (azTitle && azTitle.textContent) productName = azTitle.textContent.trim();
+            }
+        } catch (e) {
+            console.error("DOM parsing failed for Amazon specific logic", e);
+        }
+    }
 
     // Enhanced price extraction from HTML
     if (!productPrice) {
