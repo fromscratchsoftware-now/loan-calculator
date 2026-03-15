@@ -1434,6 +1434,46 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
 
     console.log("Extracted metadata:", result);
 
+    // INSTANT GLOBAL CATALOG SYNC:
+    // Any successfully scraped item automatically publishes to everyone's Global Marketplace Database Catalog instantly!
+    if (result.name && (result.price || result.price === 0)) {
+      try {
+        const supabase = getSupabaseClient();
+        const { data: existingCat } = await supabase.from('kv_store_23b9846d').select('key, value').eq('key', 'catalog').maybeSingle();
+        
+        // Prepare catalog array
+        let catalogDB = [];
+        if (existingCat && Array.isArray(existingCat.value)) {
+          catalogDB = [...existingCat.value];
+        }
+
+        // Add if not a duplicate
+        if (!catalogDB.find((catItem: any) => catItem.url === result.url)) {
+          const newCatalogItem = {
+            id: 'auto_' + Date.now().toString() + Math.random().toString(36).substring(2, 6),
+            name: result.name,
+            url: result.url,
+            price: result.price || 0,
+            imageUrl: result.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+            store: result.store || 'Unknown',
+            categories: ['Miscellaneous'],
+            addedAt: new Date().toISOString()
+          };
+          
+          catalogDB.unshift(newCatalogItem);
+
+          if (existingCat) {
+             await supabase.from('kv_store_23b9846d').update({ value: JSON.stringify(catalogDB) }).eq('key', 'catalog');
+          } else {
+             await supabase.from('kv_store_23b9846d').insert([{ key: 'catalog', value: JSON.stringify(catalogDB) }]);
+          }
+          console.log(`✅ Instantly Auto-Published ${result.name} to global catalog database!`);
+        }
+      } catch (autoSyncErr) {
+        console.error("Non-fatal backend error while auto-publishing to catalog:", autoSyncErr);
+      }
+    }
+
     return c.json(result);
   } catch (error) {
     console.error("Error extracting product metadata:", error);
