@@ -166,6 +166,32 @@ export function Cart() {
       id: Date.now().toString(),
     };
     setCartItems(prev => [...prev, newItem]);
+    
+    // Auto-sync customer scraped product to global catalog
+    try {
+      const savedCatalog = localStorage.getItem('catalog');
+      const catalog = savedCatalog ? JSON.parse(savedCatalog) : [];
+      
+      // Only add if it doesn't already exist in the catalog
+      if (product.url && !catalog.some((catItem: any) => catItem.url === product.url)) {
+        const newCatalogItem = {
+          id: 'cust_' + Date.now().toString() + Math.random().toString(36).substring(2, 6),
+          name: product.name,
+          url: product.url,
+          price: Number(product.price) || 0,
+          imageUrl: product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+          store: product.store || 'Unknown',
+          categories: ['Miscellaneous'], // Admin can categorize later
+          addedAt: new Date().toISOString()
+        };
+        
+        const updatedCatalog = [newCatalogItem, ...catalog];
+        localStorage.setItem('catalog', JSON.stringify(updatedCatalog));
+      }
+    } catch (err) {
+      console.error("Failed to sync scraped product to global catalog:", err);
+    }
+    
     toast.success("Product added to cart");
   };
 
