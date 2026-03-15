@@ -1160,7 +1160,8 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         /["']price["']\s*:\s*["']?([\d,]+\.?\d*)/i,
         /data-price=["']([\d,]+\.?\d*)["']/i,
         /"price":\s*"?([\d,]+\.?\d*)"?/i,
-        /<span[^>]*class="[^"]*price[^"]*"[^>]*>[\s\S]*?\$?([\d,]+\.?\d*)/i,
+        /<span[^>]*class="[^"]*price[^"]*"[^>]*>[^<\d\$]*\$?([\d,]+\.?\d*)/i,
+        /var\s+product_price\s*=\s*['"]?([\d,]+\.?\d*)['"]?/i,
       ];
 
       for (const pattern of pricePatterns) {
