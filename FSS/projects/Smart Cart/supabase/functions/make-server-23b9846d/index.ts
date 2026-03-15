@@ -366,12 +366,26 @@ app.post("/make-server-23b9846d/sync-kv", async (c) => {
     // Check if key exists
     const { data: existing } = await supabase
       .from('kv_store_23b9846d')
-      .select('key')
+      .select('key, value')
       .eq('key', key)
       .maybeSingle();
 
     if (existing) {
-      const { error } = await supabase.from('kv_store_23b9846d').update({ value: JSON.stringify(value) }).eq('key', key);
+      let finalValue = value;
+      // Intelligently merge arrays like the Catalog so multiple mobile/laptop devices 
+      // don't stomp on each other's uniquely scraped items when establishing initial database sync!
+      if (key === 'catalog' && Array.isArray(existing.value) && Array.isArray(value)) {
+        const mergedArray = [...existing.value];
+        for (const item of value) {
+          // Add if we don't already have an item with exactly this URL
+          if (!mergedArray.find((existingItem: any) => existingItem.url === item.url)) {
+             mergedArray.unshift(item); // Prepend new items
+          }
+        }
+        finalValue = mergedArray;
+      }
+      
+      const { error } = await supabase.from('kv_store_23b9846d').update({ value: JSON.stringify(finalValue) }).eq('key', key);
       if (error) throw error;
     } else {
       const { error } = await supabase.from('kv_store_23b9846d').insert([{ key, value: JSON.stringify(value) }]);

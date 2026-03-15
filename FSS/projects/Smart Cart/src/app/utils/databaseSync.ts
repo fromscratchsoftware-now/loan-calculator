@@ -25,9 +25,11 @@ export class DatabaseSync {
           const stringVal = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
           localStorage.setItem(`_db_${row.key}`, stringVal);
           
-          // Recreate active global states locally so app works immediately
+          // Recreate active global states locally so app works immediately (skip interceptor to prevent loop)
           if (['orders', 'catalog', 'adminConfig'].includes(row.key) || row.key.startsWith('user:')) {
-            localStorage.setItem(row.key, stringVal); 
+            // Unhooked setItem
+            const unhookedSetItem = Storage.prototype.setItem;
+            unhookedSetItem.call(window.localStorage, row.key, stringVal);
           }
         });
         

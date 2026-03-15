@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, Search, ExternalLink, Filter, BookmarkPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import Select from 'react-select';
+import { DatabaseSync } from '../utils/databaseSync';
 
 interface CatalogItem {
   id: string;
@@ -43,6 +44,13 @@ export function Catalog() {
 
       if (modified) {
         localStorage.setItem('catalog', JSON.stringify(parsed));
+      } else {
+        // Automatically sync any valid locally scraped products up to the Edge Function's new array-merger!
+        // This rescues stranded local data from before the RLS fix was deployed.
+        const hasRealProducts = parsed.some((p: CatalogItem) => !p.id.startsWith('demo'));
+        if (hasRealProducts) {
+          DatabaseSync.persistToDB('catalog', JSON.stringify(parsed));
+        }
       }
 
       setCatalog(parsed);
