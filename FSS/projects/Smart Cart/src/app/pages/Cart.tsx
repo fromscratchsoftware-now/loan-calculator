@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { Plus, Trash2, ShoppingBag, List, BookmarkPlus, CheckSquare, Square, CornerUpLeft, Puzzle } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, List, BookmarkPlus, CheckSquare, Square, CornerUpLeft, Puzzle, Download } from "lucide-react";
 import { AddProductDialog } from "../components/AddProductDialog";
 import { ProductCard } from "../components/ProductCard";
 import { Tooltip } from "../components/Tooltip";
@@ -469,15 +469,25 @@ export function Cart() {
             <List className="size-5" />
             Add from Catalog
           </button>
-          <a
-            href="https://chromewebstore.google.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-4 py-3 rounded-lg hover:bg-indigo-100 transition-colors font-medium w-full sm:w-auto"
-          >
-            <Puzzle className="size-5" />
-            Get Extension
-          </a>
+          {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+            <button
+              onClick={() => toast.info("Tap your browser's Share/Menu button and select 'Add to Home Screen' to install our Web App!")}
+              className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-4 py-3 rounded-lg hover:bg-indigo-100 transition-colors font-medium w-full sm:w-auto"
+            >
+              <Download className="size-5" />
+              Download Web App
+            </button>
+          ) : (
+            <a
+              href="https://chromewebstore.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-4 py-3 rounded-lg hover:bg-indigo-100 transition-colors font-medium w-full sm:w-auto"
+            >
+              <Puzzle className="size-5" />
+              Get Extension
+            </a>
+          )}
           <button
             onClick={() => handleOpenChange(true)}
             className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto"
