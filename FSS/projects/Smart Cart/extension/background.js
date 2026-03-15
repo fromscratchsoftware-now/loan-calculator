@@ -86,9 +86,10 @@ chrome.action.onClicked.addListener(async (tab) => {
           // 4. Robust DOM traversal for Price (Bypasses rendering firewalls)
           if (!data.price) {
               const priceSelectors = [
-                  '[data-test-id*="price"]', '[id*="price"]', '[class*="price"]',
-                  '[itemprop="price"]', '.product-price', '#product-price', '.price',
-                  '[data-price]', 'span.sales', '.prices .sales', '[data-product-price]'
+                  '[data-hb-id*="price" i]', '[data-enzyme-id*="price" i]', '[data-test-id*="price" i]', 
+                  '[id*="price" i]', '[class*="price" i]', '[itemprop="price" i]', 
+                  '.product-price', '#product-price', '.price', '[data-price]', 
+                  'span.sales', '.prices .sales', '[data-product-price]'
               ];
               for (const selector of priceSelectors) {
                   try {
@@ -103,12 +104,15 @@ chrome.action.onClicked.addListener(async (tab) => {
                                   break;
                               }
                           }
-                          const priceMatch = text.match(/\$\s*([\d,]+\.?\d*)/) || text.match(/([\d,]+\.\d{2})/);
-                          if (priceMatch && priceMatch[1]) {
-                              const testPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
-                              if (testPrice > 0 && testPrice < 1000000) {
-                                  data.price = testPrice;
-                                  break;
+                          // Extract price - limit text length to avoid pulling whole paragraphs
+                          if (text.length < 50) {
+                              const priceMatch = text.match(/\$\s*([\d,]+\.?\d*)/) || text.match(/(?:^|\s)([\d,]+\.\d{2})(?:\s|$)/);
+                              if (priceMatch && priceMatch[1]) {
+                                  const testPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
+                                  if (testPrice > 0 && testPrice < 1000000) {
+                                      data.price = testPrice;
+                                      break;
+                                  }
                               }
                           }
                       }
@@ -120,8 +124,9 @@ chrome.action.onClicked.addListener(async (tab) => {
           // 5. Robust DOM traversal for Image
           if (!data.imageUrl) {
               const imgSelectors = [
-                  'img[class*="product"]', 'img[id*="product"]', 
-                  'img[class*="main"]', 'img[data-test-id*="image"]',
+                  'img[data-hb-id*="image" i]', 'img[data-enzyme-id*="image" i]',
+                  'img[class*="product" i]', 'img[id*="product" i]', 
+                  'img[class*="main" i]', 'img[data-test-id*="image" i]',
                   '.gallery img', '.product-image img'
               ];
               for (const selector of imgSelectors) {
