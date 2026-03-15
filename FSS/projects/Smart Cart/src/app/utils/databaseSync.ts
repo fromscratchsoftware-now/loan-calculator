@@ -81,37 +81,14 @@ export class DatabaseSync {
       let parsedValue;
       try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
 
-      const res = await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_23b9846d?key=eq.${key}`, {
+      await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/sync-kv`, {
+        method: 'POST',
         headers: {
-          'apikey': publicAnonKey,
-          'Authorization': `Bearer ${publicAnonKey}`
-        }
+           'Authorization': `Bearer ${publicAnonKey}`,
+           'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ key, value: parsedValue })
       });
-      const existing = await res.json();
-      
-      if (existing && existing.length > 0) {
-        await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_23b9846d?key=eq.${key}`, {
-          method: 'PATCH',
-          headers: {
-             'apikey': publicAnonKey,
-             'Authorization': `Bearer ${publicAnonKey}`,
-             'Content-Type': 'application/json',
-             'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ value: parsedValue }) 
-        });
-      } else {
-        await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_23b9846d`, {
-          method: 'POST',
-          headers: {
-             'apikey': publicAnonKey,
-             'Authorization': `Bearer ${publicAnonKey}`,
-             'Content-Type': 'application/json',
-             'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ key, value: parsedValue })
-        });
-      }
     } catch(e) {
       console.error('DB Sync Error', e);
     }
@@ -119,10 +96,9 @@ export class DatabaseSync {
 
   static async deleteFromDB(key: string) {
     try {
-      await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_23b9846d?key=eq.${key}`, {
+      await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/sync-kv/${key}`, {
         method: 'DELETE',
         headers: {
-           'apikey': publicAnonKey,
            'Authorization': `Bearer ${publicAnonKey}`
         }
       });

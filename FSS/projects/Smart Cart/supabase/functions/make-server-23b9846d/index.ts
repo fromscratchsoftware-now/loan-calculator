@@ -355,6 +355,47 @@ app.get("/make-server-23b9846d/settings", async (c) => {
   }
 });
 
+// Sync any KV Store payload, bridging the frontend DatabaseSync to bypass RLS with Service Role privileges
+app.post("/make-server-23b9846d/sync-kv", async (c) => {
+  try {
+    const { key, value } = await c.req.json();
+    if (!key) return c.json({ error: "Key is required" }, 400);
+
+    const supabase = getSupabaseClient();
+    
+    // Check if key exists
+    const { data: existing } = await supabase
+      .from('kv_store_23b9846d')
+      .select('key')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase.from('kv_store_23b9846d').update({ value: JSON.stringify(value) }).eq('key', key);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('kv_store_23b9846d').insert([{ key, value: JSON.stringify(value) }]);
+      if (error) throw error;
+    }
+
+    return c.json({ success: true });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+app.delete("/make-server-23b9846d/sync-kv/:key", async (c) => {
+  try {
+    const key = c.req.param("key");
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.from('kv_store_23b9846d').delete().eq('key', key);
+    if (error) throw error;
+    return c.json({ success: true });
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 // Update settings
 app.post("/make-server-23b9846d/settings", async (c) => {
   try {
