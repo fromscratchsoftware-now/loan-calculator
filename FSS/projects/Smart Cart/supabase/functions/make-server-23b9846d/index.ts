@@ -1342,6 +1342,29 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
       productImage = new URL(productImage, url).toString();
     }
 
+    // Identify hidden bot/WAF challenge pages (e.g. Fanatics/store.nba.com)
+    const isBotTitle = productName && (
+      productName.toLowerCase() === validUrl.hostname.toLowerCase() || 
+      productName.toLowerCase() === storeName.toLowerCase() || 
+      productName.toLowerCase() === validUrl.hostname.replace(/^www\./, '').toLowerCase() ||
+      productName.toLowerCase().includes('http error') ||
+      productName.toLowerCase().includes('access denied') ||
+      productName.toLowerCase().includes('just a moment')
+    );
+
+    if (isBotTitle && !productPrice && !productImage) {
+      console.log(`Hidden bot challenge page detected from title: ${productName}`);
+      return c.json({
+        name: null,
+        imageUrl: null,
+        price: null,
+        store: storeName.charAt(0).toUpperCase() + storeName.slice(1),
+        description: null,
+        url: fetchUrl,
+        warning: `✅ URL saved. Website blocked automated extraction. Please manually fill in: 1) Product name, 2) Price, 3) Right-click product image → "Copy image address" and paste.`
+      });
+    }
+
     const result = {
       name: productName || null,
       imageUrl: productImage || null,
