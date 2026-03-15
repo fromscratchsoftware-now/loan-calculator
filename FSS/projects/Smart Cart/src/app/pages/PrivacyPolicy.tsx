@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router";
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
+import { Edit2, Save, X } from "lucide-react";
+import { toast } from "sonner";
 
 export function PrivacyPolicy() {
+  const { user } = useOutletContext<{ user: any }>() || { user: null };
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState<string>("");
+  const [pageId, setPageId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchPrivacyPolicy = async () => {
@@ -26,8 +34,11 @@ export function PrivacyPolicy() {
           const data = await res.json();
           const pages = data.pages || [];
           const privacyPage = pages.find((p: any) => p.slug === 'privacy');
-          if (privacyPage && privacyPage.content) {
-             setContent(privacyPage.content);
+          if (privacyPage) {
+             setPageId(privacyPage.id);
+             if (privacyPage.content) {
+               setContent(privacyPage.content);
+             }
           }
         }
       } catch (err) {
@@ -39,13 +50,114 @@ export function PrivacyPolicy() {
 
     fetchPrivacyPolicy();
   }, []);
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const demoMode = localStorage.getItem('demoMode') === 'true';
+      if (demoMode) {
+        localStorage.setItem('demo_privacy_page', editContent);
+        setContent(editContent);
+        setIsEditing(false);
+        toast.success("Privacy Policy saved successfully (Demo Mode)");
+        return;
+      }
+
+      const payload: any = {
+        title: "Privacy Policy",
+        slug: "privacy",
+        content: editContent,
+      };
+      if (pageId) {
+        payload.id = pageId;
+      }
+
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/custom_pages`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${publicAnonKey}`,
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.page?.id) setPageId(data.page.id);
+        setContent(editContent);
+        setIsEditing(false);
+        toast.success("Privacy Policy saved successfully");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to save privacy policy");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error saving privacy policy");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEditing = () => {
+    // If we have content use it, otherwise use a default placeholder to start with.
+    setEditContent(content || "<p>Write your new privacy policy here...</p>");
+    setIsEditing(true);
+  };
 
   if (loading) return <div className="p-12 text-center text-gray-500 min-h-screen">Loading Privacy Policy...</div>;
 
-  if (content) {
+  const isAdmin = user?.role === 'admin';
+
+  if (isEditing) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Edit Privacy Policy</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsEditing(false)}
+              disabled={saving}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            >
+              <X className="w-4 h-4" /> Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" /> {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">HTML Content</label>
+          <textarea 
+            rows={20}
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none font-mono text-sm"
+          />
+          <p className="mt-2 text-sm text-gray-500">You can use standard HTML tags like &lt;h1&gt;, &lt;p&gt;, &lt;ul&gt;, and &lt;strong&gt;.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (content) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen relative">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Privacy Policy</h1>
+          {isAdmin && (
+            <button
+              onClick={startEditing}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-medium transition-colors"
+            >
+              <Edit2 className="w-4 h-4" /> Edit Policy
+            </button>
+          )}
+        </div>
         <div 
           className="prose prose-indigo max-w-none text-gray-700 space-y-6"
           dangerouslySetInnerHTML={{ __html: content }}
@@ -56,8 +168,18 @@ export function PrivacyPolicy() {
 
   // Fallback
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen">
-      <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+    <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen relative">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900">Privacy Policy</h1>
+        {isAdmin && (
+          <button
+            onClick={startEditing}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-medium transition-colors"
+          >
+            <Edit2 className="w-4 h-4" /> Edit Policy
+          </button>
+        )}
+      </div>
       
       <div className="prose prose-indigo max-w-none text-gray-700 space-y-6">
         <p className="text-lg">
