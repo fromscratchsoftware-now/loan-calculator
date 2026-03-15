@@ -12,6 +12,7 @@ interface OrderStatus {
 interface AdminConfig {
   serviceFee: number;
   serviceFeeTooltip: string;
+  addProductTooltip: string;
   whatsappNumber: string;
   showWhatsapp: boolean;
   businessEmail: string;
@@ -60,6 +61,7 @@ interface AdminConfig {
 const DEFAULT_CONFIG: AdminConfig = {
   serviceFee: 5.00,
   serviceFeeTooltip: "This fee covers our personal shopping service, including product verification, secure purchasing, and delivery coordination.",
+  addProductTooltip: "Just paste the product link or url and the rest of the information will auto populate.",
   whatsappNumber: "+1234567890",
   showWhatsapp: true,
   businessEmail: "support@smartcart.com",
@@ -144,6 +146,11 @@ export function AdminSettings() {
       return;
     }
 
+    if (!config.addProductTooltip?.trim()) {
+      toast.error("Add Product tooltip cannot be empty");
+      return;
+    }
+
     if (!config.whatsappNumber.trim()) {
       toast.error("WhatsApp number cannot be empty");
       return;
@@ -221,6 +228,23 @@ export function AdminSettings() {
           />
           <p className="text-xs text-gray-500 mt-1">
             This message will be shown when customers hover over the service fee
+          </p>
+        </div>
+
+        {/* Add Product Tooltip */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Add Product Tooltip
+          </label>
+          <textarea
+            value={config.addProductTooltip || DEFAULT_CONFIG.addProductTooltip}
+            onChange={(e) => setConfig({ ...config, addProductTooltip: e.target.value })}
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Explain how to add a product..."
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            This message will be shown when customers hover over the 'Add Product' form title.
           </p>
         </div>
 
@@ -630,7 +654,10 @@ export function AdminSettings() {
             <span className="font-medium text-blue-900">${config.serviceFee.toFixed(2)}</span>
           </div>
           <div className="bg-white p-3 rounded border border-blue-200">
-            <p className="text-xs text-gray-600 italic">"{config.serviceFeeTooltip}"</p>
+            <p className="text-xs text-gray-600 italic">Service Fee Tip: "{config.serviceFeeTooltip}"</p>
+          </div>
+          <div className="bg-white p-3 rounded border border-blue-200">
+            <p className="text-xs text-gray-600 italic">Add Product Tip: "{config.addProductTooltip}"</p>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-blue-900">WhatsApp:</span>

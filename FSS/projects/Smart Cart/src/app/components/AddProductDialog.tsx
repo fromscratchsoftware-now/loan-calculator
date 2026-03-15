@@ -2,18 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { X, Sparkles, Loader2 } from "lucide-react";
 import type { CartItem } from "../pages/Cart";
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
+import { Tooltip } from "./Tooltip";
 
 interface AddProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (product: Omit<CartItem, "id">) => void;
-  onSaveForLater?: (product: Omit<CartItem, "id">) => void;
   initialUrl?: string;
   initialPreDom?: string;
   initialData?: {name?: string, price?: number, image?: string};
+  autoSubmit?: boolean;
 }
 
-export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, initialUrl, initialPreDom, initialData }: AddProductDialogProps) {
+export function AddProductDialog({ open, onOpenChange, onAdd, initialUrl, initialPreDom, initialData, autoSubmit }: AddProductDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
     url: initialUrl || "",
@@ -26,8 +27,10 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionMessage, setExtractionMessage] = useState<{ type: 'success' | 'error' | 'warning', text: string } | null>(null);
   const [lastExtractedUrl, setLastExtractedUrl] = useState<string>("");
+  const [addProductTooltip, setAddProductTooltip] = useState("Just paste the product link or url and the rest of the information will auto populate.");
   
   // Refs for focusing after extraction
+  const urlInputRef = useRef<HTMLInputElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -77,7 +80,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
     prevInitialUrlRef.current = initialUrl;
   }, [initialUrl, open, onAdd]);
 
-  // Reset form when dialog closes
+  // Reset form when dialog closes or opens
   useEffect(() => {
     if (!open) {
       // Clear the form when dialog is closed
@@ -94,10 +97,28 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
       setIsExtracting(false);
       setLastExtractedUrl("");
       localStorage.removeItem('draft_product');
-    } else if (initialUrl && !formData.url) {
-      setFormData(prev => ({ ...prev, url: initialUrl }));
+    } else {
+      // Focus the URL input when dialog opens
+      setTimeout(() => {
+        urlInputRef.current?.focus();
+      }, 100);
+      
+      if (initialUrl && !formData.url) {
+        setFormData(prev => ({ ...prev, url: initialUrl }));
+      }
+      
+      // Load admin config for tooltip
+      const configStr = localStorage.getItem("adminConfig");
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          if (config.addProductTooltip) {
+            setAddProductTooltip(config.addProductTooltip);
+          }
+        } catch(e) {}
+      }
     }
-  }, [open]); // removed initialUrl from deps to let the other hook handle changes
+  }, [open, initialUrl]);
 
   // Continuously save draft to recover on full page reload when another item is shared
   useEffect(() => {
@@ -232,15 +253,17 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
         return;
       }
 
-      // Auto-fill the form with extracted data
-      setFormData({
+      const updatedFormData = {
         ...formData,
         name: data.name || formData.name,
         imageUrl: data.imageUrl || formData.imageUrl,
         price: data.price ? String(data.price) : formData.price,
         store: data.store || formData.store,
         url: data.url || formData.url, // Use normalized URL from server (eBay tracking params removed)
-      });
+      };
+
+      // Auto-fill the form with extracted data
+      setFormData(updatedFormData);
 
       // Show success or warning message
       if (data.warning) {
@@ -264,6 +287,43 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
         });
 
         console.log("✅ Product data extracted successfully:", data);
+
+        // Auto submit if triggered by extension push and we have the required fields
+        if (autoSubmit && updatedFormData.name && updatedFormData.price && updatedFormData.store) {
+          console.log("🚀 Auto-submitting product from extension...");
+          onAdd({
+            name: updatedFormData.name,
+            url: updatedFormData.url,
+            price: parseFloat(updatedFormData.price),
+            imageUrl: updatedFormData.imageUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+            quantity: parseInt(formData.quantity) || 1,
+            store: updatedFormData.store,
+            notes: formData.notes,
+          });
+          
+          // Reset form
+          setFormData({
+            name: "",
+            url: "",
+            price: "",
+            imageUrl: "",
+            quantity: "1",
+            store: "",
+            notes: "",
+          });
+          
+          // Clear extraction message and state
+          setExtractionMessage(null);
+          setIsExtracting(false);
+          setLastExtractedUrl("");
+          
+          // Re-focus URL input for the next item
+          setTimeout(() => {
+            urlInputRef.current?.focus();
+          }, 100);
+          
+          return; // Exit early since we submitted
+        }
 
         // Automatically add to catalog if it's a complete product
         if (data.name && data.price && data.imageUrl) {
@@ -802,42 +862,17 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
 
     // Clear extraction message
     setExtractionMessage(null);
+    setIsExtracting(false);
+    setLastExtractedUrl("");
 
-    onOpenChange(false);
+    // Re-focus URL input for the next item
+    setTimeout(() => {
+      urlInputRef.current?.focus();
+    }, 100);
   };
 
-  const handleSaveForLaterClicked = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (!formData.name || !formData.url || !formData.price || !formData.store) {
-      alert("Please ensure all required fields are filled out.");
-      return;
-    }
-
-    const payload = {
-      name: formData.name,
-      url: formData.url,
-      price: parseFloat(formData.price),
-      imageUrl: formData.imageUrl || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-      quantity: parseInt(formData.quantity) || 1,
-      store: formData.store,
-      notes: formData.notes,
-    };
-
-    if (onSaveForLater) {
-      onSaveForLater(payload);
-    } else {
-      // Fallback
-      const savedItemsStr = localStorage.getItem('smartcart_saved_items');
-      const savedItems = savedItemsStr ? JSON.parse(savedItemsStr) : [];
-      const existingIndex = savedItems.findIndex((si: any) => si.url === payload.url);
-      if (existingIndex < 0) {
-        savedItems.push({ ...payload, id: Date.now().toString() });
-        localStorage.setItem('smartcart_saved_items', JSON.stringify(savedItems));
-        window.dispatchEvent(new Event('savedItemsUpdated'));
-      }
-    }
-
+  const handleClear = () => {
+    // Reset form
     setFormData({
       name: "",
       url: "",
@@ -847,9 +882,19 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
       store: "",
       notes: "",
     });
+
+    // Clear extraction message
     setExtractionMessage(null);
-    onOpenChange(false);
+    setIsExtracting(false);
+    setLastExtractedUrl("");
+
+    // Re-focus URL input
+    setTimeout(() => {
+      urlInputRef.current?.focus();
+    }, 100);
   };
+
+
 
   if (!open) return null;
 
@@ -857,13 +902,22 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl text-gray-900">Add Product</h2>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="size-6" />
-          </button>
+          <h2 className="text-2xl text-gray-900 flex items-center gap-2">
+            Add Product <Tooltip content={addProductTooltip} position="bottom" />
+          </h2>
+          <div className="relative group">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close form"
+            >
+              <X className="size-6" />
+            </button>
+            <div className="absolute right-0 top-full mt-2 hidden group-hover:block px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap z-50">
+              <div className="absolute bottom-full right-3 border-4 border-transparent border-b-gray-900"></div>
+              Close form
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -872,6 +926,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
               Product URL *
             </label>
             <input
+              ref={urlInputRef}
               type="url"
               value={formData.url}
               onChange={(e) => {
@@ -1018,18 +1073,12 @@ export function AddProductDialog({ open, onOpenChange, onAdd, onSaveForLater, in
           <div className="flex gap-3 pt-4 flex-col sm:flex-row">
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClear}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              Clear
             </button>
-            <button
-              type="button"
-              onClick={handleSaveForLaterClicked}
-              className="flex-1 px-4 py-2 border border-indigo-600 text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors whitespace-nowrap"
-            >
-              Save for Later
-            </button>
+
             <button
               ref={submitButtonRef}
               type="submit"

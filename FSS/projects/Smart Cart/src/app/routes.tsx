@@ -17,6 +17,7 @@ import Logout from "./pages/Logout";
 import { Catalog } from "./pages/Catalog";
 import { AddFromShare } from "./pages/AddFromShare";
 import { CustomPage } from "./pages/CustomPage";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
       {
         path: "p/:slug",
         Component: CustomPage,
+      },
+      {
+        path: "privacy",
+        Component: PrivacyPolicy,
       },
       {
         path: "*",

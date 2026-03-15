@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { Plus, Trash2, ShoppingBag, List, BookmarkPlus, CheckSquare, Square, CornerUpLeft } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, List, BookmarkPlus, CheckSquare, Square, CornerUpLeft, Puzzle } from "lucide-react";
 import { AddProductDialog } from "../components/AddProductDialog";
 import { ProductCard } from "../components/ProductCard";
 import { Tooltip } from "../components/Tooltip";
@@ -25,7 +25,18 @@ export function Cart() {
   const [initialPreDom, setInitialPreDom] = useState("");
   const [initialData, setInitialData] = useState<{name?: string, price?: number, image?: string}>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isExtensionPush, setIsExtensionPush] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+
+  const handleOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setInitialUrl("");
+      setInitialPreDom("");
+      setInitialData({});
+      setIsExtensionPush(false);
+    }
+  };
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [serviceFee, setServiceFee] = useState(5.00);
@@ -74,7 +85,8 @@ export function Cart() {
       if (image) newInitialData.image = image;
       setInitialData(newInitialData);
       
-      setIsDialogOpen(true);
+      setIsExtensionPush(true);
+      handleOpenChange(true);
       
       // Clean up URL
       const newSearchParams = new URLSearchParams(searchParams);
@@ -457,12 +469,21 @@ export function Cart() {
             <List className="size-5" />
             Add from Catalog
           </button>
+          <a
+            href="https://chromewebstore.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-4 py-3 rounded-lg hover:bg-indigo-100 transition-colors font-medium w-full sm:w-auto"
+          >
+            <Puzzle className="size-5" />
+            Get Extension
+          </a>
           <button
-            onClick={() => setIsDialogOpen(true)}
+            onClick={() => handleOpenChange(true)}
             className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto"
           >
             <Plus className="size-5" />
-            {cartItems.length > 0 ? 'Add Another Product' : 'Add Product'}
+            {cartItems.length > 0 ? 'Add Product Manually' : 'Add Product'}
           </button>
         </div>
       </div>
@@ -475,12 +496,21 @@ export function Cart() {
             Start adding products from any online store
           </p>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full px-4 sm:px-0">
+            <a
+              href="https://chromewebstore.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex justify-center items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto font-medium shadow-md"
+            >
+              <Puzzle className="size-5" />
+              Install Browser Extension
+            </a>
             <button
-              onClick={() => setIsDialogOpen(true)}
-              className="inline-flex justify-center items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors w-full sm:w-auto"
+              onClick={() => handleOpenChange(true)}
+              className="inline-flex justify-center items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto font-medium"
             >
               <Plus className="size-5" />
-              Add Your First Product
+              Add Product Manually
             </button>
             <button
               onClick={() => navigate("/catalog")}
@@ -652,11 +682,12 @@ export function Cart() {
 
       <AddProductDialog
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleOpenChange}
         onAdd={addProduct}
         initialUrl={initialUrl}
         initialPreDom={initialPreDom}
         initialData={initialData}
+        autoSubmit={isExtensionPush}
       />
     </div>
   );
