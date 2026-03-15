@@ -1,6 +1,62 @@
+import { useState, useEffect } from "react";
+import { projectId, publicAnonKey } from "../../utils/supabase/info";
+
 export function PrivacyPolicy() {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPrivacyPolicy = async () => {
+      try {
+        const demoMode = localStorage.getItem('demoMode') === 'true';
+        if (demoMode) {
+          const cached = localStorage.getItem('demo_privacy_page');
+          if (cached) setContent(cached);
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/custom_pages`, {
+          headers: {
+            Authorization: `Bearer ${publicAnonKey}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const pages = data.pages || [];
+          const privacyPage = pages.find((p: any) => p.slug === 'privacy');
+          if (privacyPage && privacyPage.content) {
+             setContent(privacyPage.content);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrivacyPolicy();
+  }, []);
+
+  if (loading) return <div className="p-12 text-center text-gray-500 min-h-screen">Loading Privacy Policy...</div>;
+
+  if (content) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen">
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+        <div 
+          className="prose prose-indigo max-w-none text-gray-700 space-y-6"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4 py-12 bg-white min-h-screen">
       <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
       
       <div className="prose prose-indigo max-w-none text-gray-700 space-y-6">
