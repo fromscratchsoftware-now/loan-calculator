@@ -5,14 +5,14 @@ export class DatabaseSync {
     console.log("🟢 DatabaseSync active. Hydrating locally from Database...");
     
     try {
-      // Hydrate all keys from Supabase kv_store
-      const res = await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_23b9846d`, {
+      // Hydrate all keys from Supabase kv_store via bypass endpoint
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/sync-kv`, {
         headers: {
-          'apikey': publicAnonKey,
           'Authorization': `Bearer ${publicAnonKey}`
         }
       });
-      const data = await res.json();
+      const resJson = await res.json();
+      const data = resJson.data || [];
       
       if (Array.isArray(data)) {
         data.forEach((row: any) => {

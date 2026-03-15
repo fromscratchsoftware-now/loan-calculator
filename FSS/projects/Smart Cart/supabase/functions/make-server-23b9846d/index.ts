@@ -374,8 +374,15 @@ app.post("/make-server-23b9846d/sync-kv", async (c) => {
       let finalValue = value;
       // Intelligently merge arrays like the Catalog so multiple mobile/laptop devices 
       // don't stomp on each other's uniquely scraped items when establishing initial database sync!
-      if (key === 'catalog' && Array.isArray(existing.value) && Array.isArray(value)) {
-        const mergedArray = [...existing.value];
+      
+      // Handle the fact that 'existing.value' might be stored as a stringified JSON array
+      let existingArray = existing.value;
+      if (typeof existingArray === 'string') {
+        try { existingArray = JSON.parse(existingArray); } catch(e) {}
+      }
+
+      if (key === 'catalog' && Array.isArray(existingArray) && Array.isArray(value)) {
+        const mergedArray = [...existingArray];
         for (const item of value) {
           // Add if we don't already have an item with exactly this URL
           if (!mergedArray.find((existingItem: any) => existingItem.url === item.url)) {
@@ -396,6 +403,12 @@ app.post("/make-server-23b9846d/sync-kv", async (c) => {
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
   }
+});
+
+app.get("/make-server-23b9846d/sync-kv", async (c) => {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.from('kv_store_23b9846d').select('*');
+  return c.json({ data, error });
 });
 
 app.delete("/make-server-23b9846d/sync-kv/:key", async (c) => {
