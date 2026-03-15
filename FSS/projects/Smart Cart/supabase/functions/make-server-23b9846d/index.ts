@@ -765,7 +765,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         if (itemIdMatch && itemIdMatch[1]) {
           return c.json({ 
             name: null, imageUrl: null, price: null, store: 'eBay', description: null, url: fetchUrl,
-            warning: `✅ eBay URL saved. eBay blocked automated extraction. Please visit the page and manually enter: product name, price, and image address.`
+            warning: `✅ eBay URL saved. Unable to extract pricing automatically. Please manually enter the product name and price, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!`
           });
         }
       }
@@ -815,7 +815,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
               store: 'eBay',
               description: null,
               url: fetchUrl,
-              warning: `✅ eBay URL saved (item #${itemIdMatch[1]}). eBay blocked automated extraction. Please visit the page and manually enter: product name, price, and right-click image → "Copy image address" to paste here.`
+              warning: `✅ eBay URL saved (item #${itemIdMatch[1]}). Unable to extract pricing automatically. Please manually enter the product name and price, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!`
             });
           }
         }
@@ -846,7 +846,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
           store: formattedStoreName,
           description: null,
           url: url,
-          warning: `✅ URL saved. Website blocked automated extraction. Please manually fill in: 1) Product name, 2) Price, 3) Right-click product image → "Copy image address" and paste.`
+          warning: `✅ URL saved. Unable to extract pricing automatically. Please manually fill in the product details, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!`
         });
       }
     }
@@ -1364,7 +1364,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         store: storeName.charAt(0).toUpperCase() + storeName.slice(1),
         description: null,
         url: fetchUrl,
-        warning: `✅ URL saved. Website blocked automated extraction. Please manually fill in: 1) Product name, 2) Price, 3) Right-click product image → "Copy image address" and paste.`
+        warning: `✅ URL saved. Unable to extract pricing automatically. Please manually fill in the product details, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!`
       });
     }
 

@@ -554,7 +554,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd, initialUrl, initia
           console.warn(`🔒 Website blocking extraction: ${data.error}`);
           setExtractionMessage({ 
             type: 'warning', 
-            text: '🔒 This website (iHerb, Amazon, etc.) blocks automated data extraction. Please manually fill in: 1) Copy product name from page, 2) Copy price, 3) Right-click product image → "Copy image address" and paste here.' 
+            text: '🔒 Unable to extract pricing automatically due to enterprise firewalls (e.g. iHerb, Amazon). Please manually type the price/title, or rely on our convenient Shopping Assistant extension: if installed, simply go back to the product page and click it!' 
           });
           // Return empty object to prevent further error messages
           return { extracted: false };
