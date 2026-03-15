@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useOutletContext, useNavigate } from "react-router";
 import { LayoutDashboard, Save, ArrowLeft, Image as ImageIcon, Type, AlignLeft, CheckCircle, Chrome, Smartphone, Truck, Package, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { projectId, publicAnonKey } from "@/utils/supabase/info";
+import { projectId, publicAnonKey } from "../../utils/supabase/info";
 
 interface HomePageData {
   heroTitle: string;
@@ -78,6 +78,8 @@ export function AdminPages() {
   
   const [pageId, setPageId] = useState<string | null>(null);
   const [formData, setFormData] = useState<HomePageData>(DEFAULT_DATA);
+  const [privacyPageId, setPrivacyPageId] = useState<string | null>(null);
+  const [privacyContent, setPrivacyContent] = useState<string>("");
 
   useEffect(() => {
     console.log("Token check in AdminPages:", publicAnonKey);
@@ -95,12 +97,16 @@ export function AdminPages() {
       const demoMode = localStorage.getItem('demoMode') === 'true';
       if (demoMode) {
         const demoContent = localStorage.getItem('demo_home_page');
+        const demoPrivacy = localStorage.getItem('demo_privacy_page');
         if (demoContent) {
            try {
              setFormData({ ...DEFAULT_DATA, ...JSON.parse(demoContent) });
            } catch (e) {
              console.error("Failed to parse demo home page", e);
            }
+        }
+        if (demoPrivacy) {
+           setPrivacyContent(demoPrivacy);
         }
         setLoading(false);
         return;
@@ -124,6 +130,11 @@ export function AdminPages() {
             console.error("Failed to parse home page content", e);
           }
         }
+        const privacyPage = pages.find((p: any) => p.slug === 'privacy');
+        if (privacyPage && privacyPage.content) {
+          setPrivacyPageId(privacyPage.id);
+          setPrivacyContent(privacyPage.content);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -145,7 +156,8 @@ export function AdminPages() {
       const demoMode = localStorage.getItem('demoMode') === 'true';
       if (demoMode) {
         localStorage.setItem('demo_home_page', payload.content);
-        toast.success("Home page content saved successfully (Demo Mode)");
+        localStorage.setItem('demo_privacy_page', privacyContent);
+        toast.success("Home and Privacy content saved successfully (Demo Mode)");
         setSaving(false);
         return;
       }
@@ -168,10 +180,35 @@ export function AdminPages() {
         if (data.page?.id) {
            setPageId(data.page.id);
         }
-        toast.success("Home page content saved successfully");
+        
+        // Also save privacy content
+        const privacyPayload: any = {
+          title: "Privacy Policy",
+          slug: "privacy",
+          content: privacyContent,
+        };
+        if (privacyPageId) {
+          privacyPayload.id = privacyPageId;
+        }
+        
+        const resPrivacy = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-23b9846d/custom_pages`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify(privacyPayload)
+        });
+        
+        if (resPrivacy.ok) {
+           const pData = await resPrivacy.json();
+           if (pData.page?.id) setPrivacyPageId(pData.page.id);
+        }
+        
+        toast.success("Content saved successfully");
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to save home page");
+        toast.error(data.error || "Failed to save contents");
       }
     } catch (e) {
       console.error(e);
@@ -444,6 +481,24 @@ export function AdminPages() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
             <input type="text" value={formData.ctaBtn} onChange={(e) => handleChange('ctaBtn', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none" />
           </div>
+        </div>
+      </div>
+
+      {/* Privacy Policy Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="p-6 border-b border-gray-200 bg-gray-50 flex items-center gap-2">
+          <AlignLeft className="text-gray-500 w-5 h-5" />
+          <h2 className="text-lg font-medium text-gray-900">Privacy Policy Content</h2>
+        </div>
+        <div className="p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">HTML Content</label>
+          <textarea 
+            rows={15}
+            value={privacyContent}
+            onChange={(e) => setPrivacyContent(e.target.value)}
+            placeholder="<div>Your Privacy Policy Details...</div>"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none font-mono text-sm"
+          />
         </div>
       </div>
 
