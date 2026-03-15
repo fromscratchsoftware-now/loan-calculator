@@ -91,6 +91,7 @@ chrome.action.onClicked.addListener(async (tab) => {
                   '.product-price', '#product-price', '.price', '[data-price]', 
                   'span.sales', '.prices .sales', '[data-product-price]'
               ];
+              const candidatePrices = [];
               for (const selector of priceSelectors) {
                   try {
                       const elements = document.querySelectorAll(selector);
@@ -98,30 +99,43 @@ chrome.action.onClicked.addListener(async (tab) => {
                           // Skip prices inside sponsored banners or related carousels
                           const isBadParent = el.closest('[class*="sponsor" i], [class*="banner" i], [class*="carousel" i], [class*="recommend" i], [id*="recommend" i], [class*="similar" i], li');
                           if (isBadParent) continue;
+                          
+                          // Ignore hidden prices
+                          if (el.offsetWidth === 0 && el.offsetHeight === 0) continue;
 
                           const text = el.textContent?.trim() || '';
                           const dataPrice = el.getAttribute('data-product-price') || el.getAttribute('data-price');
+                          let foundPrice = null;
+
                           if (dataPrice) {
                               const testPrice = parseFloat(dataPrice.replace(/,/g, ""));
                               if (testPrice > 0 && testPrice < 1000000) {
-                                  data.price = testPrice;
-                                  break;
+                                  foundPrice = testPrice;
                               }
                           }
                           // Extract price - limit text length to avoid pulling whole paragraphs
-                          if (text.length < 50) {
+                          if (!foundPrice && text.length < 50) {
                               const priceMatch = text.match(/\$\s*([\d,]+\.?\d*)/) || text.match(/(?:^|\s)([\d,]+\.\d{2})(?:\s|$)/);
                               if (priceMatch && priceMatch[1]) {
                                   const testPrice = parseFloat(priceMatch[1].replace(/,/g, ""));
                                   if (testPrice > 0 && testPrice < 1000000) {
-                                      data.price = testPrice;
-                                      break;
+                                      foundPrice = testPrice;
                                   }
                               }
                           }
+                          
+                          if (foundPrice) {
+                              const fontSize = parseFloat(window.getComputedStyle(el).fontSize) || 0;
+                              candidatePrices.push({ price: foundPrice, fontSize, el });
+                          }
                       }
-                      if (data.price) break;
                   } catch (e) {}
+              }
+              
+              if (candidatePrices.length > 0) {
+                  // Sort by font size descending to guarantee we pick the Hero product price over sidebar prices
+                  candidatePrices.sort((a, b) => b.fontSize - a.fontSize);
+                  data.price = candidatePrices[0].price;
               }
           }
           
@@ -133,6 +147,7 @@ chrome.action.onClicked.addListener(async (tab) => {
                   'img[class*="main" i]', 'img[data-test-id*="image" i]',
                   '.gallery img', '.product-image img'
               ];
+              const candidateImages = [];
               for (const selector of imgSelectors) {
                   try {
                       const elements = document.querySelectorAll(selector);
@@ -142,25 +157,32 @@ chrome.action.onClicked.addListener(async (tab) => {
 
                           const src = img.getAttribute('src');
                           if (src && !src.includes('data:image') && !src.includes('placeholder') && !src.includes('1x1')) {
-                              data.imageUrl = src;
-                              break;
+                              candidateImages.push({ src, area: img.width * img.height });
                           }
                       }
-                      if (data.imageUrl) break;
                   } catch (e) {}
               }
+              if (candidateImages.length > 0) {
+                  candidateImages.sort((a, b) => b.area - a.area);
+                  data.imageUrl = candidateImages[0].src;
+              }
+
               // Generic fallback to biggest image
               if (!data.imageUrl) {
                   const imgs = document.querySelectorAll('img[src]');
+                  const fallbackImages = [];
                   for (const img of imgs) {
                       const isBadParent = img.closest('[class*="sponsor" i], [class*="banner" i], [class*="carousel" i], [class*="recommend" i], [id*="recommend" i], [class*="similar" i], li');
                       if (isBadParent) continue;
 
                       const src = img.getAttribute('src');
                       if (src && !src.includes('data:image') && !src.includes('placeholder') && img.width > 200) {
-                          data.imageUrl = src;
-                          break;
+                          fallbackImages.push({ src, area: img.width * img.height });
                       }
+                  }
+                  if (fallbackImages.length > 0) {
+                      fallbackImages.sort((a, b) => b.area - a.area);
+                      data.imageUrl = fallbackImages[0].src;
                   }
               }
           }
