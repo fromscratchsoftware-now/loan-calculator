@@ -929,20 +929,22 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
 
     // Extract metadata using regex (for Open Graph, meta tags, and JSON-LD)
     const extractMeta = (property: string): string | null => {
+      const decodeHtml = (str: string) => str.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      
       // Try Open Graph tags
-      const ogRegex = new RegExp(`<meta\\s+property=["']${property}["']\\s+content=["']([^"']+)["']`, 'i');
+      const ogRegex = new RegExp(`<meta\\s+property=["']${property}["']\\s+content=(["'])(.*?)\\1`, 'i');
       const ogMatch = html.match(ogRegex);
-      if (ogMatch) return ogMatch[1];
+      if (ogMatch && ogMatch[2]) return decodeHtml(ogMatch[2]);
 
       // Try name attribute
-      const nameRegex = new RegExp(`<meta\\s+name=["']${property}["']\\s+content=["']([^"']+)["']`, 'i');
+      const nameRegex = new RegExp(`<meta\\s+name=["']${property}["']\\s+content=(["'])(.*?)\\1`, 'i');
       const nameMatch = html.match(nameRegex);
-      if (nameMatch) return nameMatch[1];
+      if (nameMatch && nameMatch[2]) return decodeHtml(nameMatch[2]);
 
       // Try reversed order (content before property/name)
-      const reverseRegex = new RegExp(`<meta\\s+content=["']([^"']+)["']\\s+(?:property|name)=["']${property}["']`, 'i');
+      const reverseRegex = new RegExp(`<meta\\s+content=(["'])(.*?)\\1\\s+(?:property|name)=["']${property}["']`, 'i');
       const reverseMatch = html.match(reverseRegex);
-      if (reverseMatch) return reverseMatch[1];
+      if (reverseMatch && reverseMatch[2]) return decodeHtml(reverseMatch[2]);
 
       return null;
     };
