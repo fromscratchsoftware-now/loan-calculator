@@ -1511,8 +1511,22 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
        }
     } catch(e) {}
     
-    // Deduplicate array and keep the top 6 images
-    allImages = [...new Set(allImages)].slice(0, 6);
+    // Deduplicate array by base URL (ignoring query parameters to prevent 5 sizes of the exact same image)
+    const uniqueImages = new Map<string, string>();
+    for (const img of allImages) {
+        try {
+            const baseUrl = img.split('?')[0];
+            if (!uniqueImages.has(baseUrl)) {
+                uniqueImages.set(baseUrl, img);
+            } else {
+                // If the new one seems like a higher resolution version, keep it instead
+                if (img.match(/1000|2000|large|high|zoom/i)) {
+                    uniqueImages.set(baseUrl, img);
+                }
+            }
+        } catch(e) {}
+    }
+    allImages = Array.from(uniqueImages.values()).slice(0, 6);
 
     const result = {
       name: productName || null,
