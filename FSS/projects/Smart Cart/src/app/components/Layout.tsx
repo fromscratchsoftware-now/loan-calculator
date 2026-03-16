@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router';
-import { Home, LogOut, User, Package, LayoutDashboard, Settings, Mail, MessageCircle } from 'lucide-react';
+import { Home, ShoppingCart, LogOut, User, Package, LayoutDashboard, Settings, Mail, MessageCircle } from 'lucide-react';
 import { PWAInstallBanner } from './PWAInstallBanner';
 
 export function Layout() {
