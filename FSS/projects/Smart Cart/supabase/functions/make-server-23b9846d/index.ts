@@ -1422,6 +1422,13 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
       if (priceMatch) {
         priceNumber = parseFloat(priceMatch[0].replace(/,/g, ""));
       }
+      
+      // Reject anti-scraping placeholder prices (e.g. Costco JSON-LD rendering exactly 1)
+      if (priceNumber === 1 && String(validUrl.hostname).includes('costco.com')) {
+          console.log(`Rejecting exact $1 placeholder price from Costco JSON payload.`);
+          priceNumber = null;
+          productPrice = null;
+      }
     }
 
     // Make image URL absolute if it's relative
