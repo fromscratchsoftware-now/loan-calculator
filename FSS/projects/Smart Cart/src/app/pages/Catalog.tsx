@@ -25,8 +25,19 @@ export function Catalog() {
     const loadCatalogData = () => {
       // Load catalog from localStorage
       const savedCatalog = localStorage.getItem('catalog');
-      if (savedCatalog && JSON.parse(savedCatalog).length > 0) {
-        let parsed = JSON.parse(savedCatalog);
+      let parsed = [];
+      if (savedCatalog) {
+        try {
+          parsed = JSON.parse(savedCatalog);
+          if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed); // Handle doubly-stringified cases gracefully instead of crashing
+          }
+        } catch(e) {
+          console.error("Failed to parse catalog completely", e);
+        }
+      }
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
       
       // Auto-migrate broken amazon image URLs from older sessions
       let modified = false;
