@@ -1447,40 +1447,67 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
     let allImages: string[] = [];
     if (productImage) allImages.push(productImage);
 
-    // Extract additional pictures without slowing down by leveraging the already-downloaded document DOM
+    // Look for breadcrumbs to find category
+    let originalCategory: string | null = null;
     try {
-      if (typeof document !== 'undefined') {
-        const imgElements = document.querySelectorAll('img');
-        let count = 0;
-        for (const img of Array.from(imgElements) as any[]) {
-          if (count > 100) break; // Limit iteration for speed
-          
-          let src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-zoom-image');
-          if (src) {
-            src = src.trim();
-            // Skip typical low-quality/metadata images
-            if (!src.includes('data:image') && 
-                !src.includes('placeholder') &&
-                !src.includes('1x1') &&
-                !src.includes('.svg') &&
-                !src.includes('tracking') &&
-                !src.toLowerCase().includes('logo') &&
-                !src.toLowerCase().includes('icon')) {
-                
-                // Make absolute
-                if (!src.startsWith("http")) {
-                   try { src = new URL(src, fetchUrl).toString(); } catch(e){}
-                }
-                
-                allImages.push(src);
-                count++;
-            }
-          }
+      if (jsonLd) {
+        if (jsonLd.category) {
+          originalCategory = typeof jsonLd.category === 'string' ? jsonLd.category : JSON.stringify(jsonLd.category);
+        }
+        if (jsonLd.image) {
+           if (Array.isArray(jsonLd.image)) {
+              for (const i of jsonLd.image) {
+                if (typeof i === 'string') allImages.push(i);
+                else if (i && i.url) allImages.push(i.url);
+              }
+           } else if (typeof jsonLd.image === 'string') {
+              allImages.push(jsonLd.image);
+           } else if (jsonLd.image.url) {
+              allImages.push(jsonLd.image.url); // maybe an ImageObject
+           }
+        }
+      }
+
+      if (!originalCategory) {
+        const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+        let match;
+        let cats = [];
+        while ((match = jsonLdRegex.exec(html)) !== null) {
+            try {
+              const data = JSON.parse(match[1]);
+              const breadcrumbObj = data["@type"] === "BreadcrumbList" ? data : (Array.isArray(data["@graph"]) ? data["@graph"].find((i: any) => i["@type"] === "BreadcrumbList") : null);
+              if (breadcrumbObj && Array.isArray(breadcrumbObj.itemListElement)) {
+                  cats = breadcrumbObj.itemListElement.map((i: any) => i.item ? (i.item.name || i.name) : i.name).filter(Boolean);
+                  if (cats.length > 0) break;
+              }
+            } catch(e) {}
+        }
+        if (cats.length > 0) {
+           originalCategory = cats.join(" > ");
         }
       }
     } catch (e) {
-      console.error("Non-fatal error scraping extra images:", e);
+      console.error("Non-fatal error scraping categories:", e);
     }
+
+    // Try regex for images over entire HTML
+    try {
+       const imgSrcRegex = /https?:\/\/[^"'\s<>)]+?(?:\.jpg|\.png|\.webp|\.jpeg)(?:\?[^"'\s<>)]*)?/gi;
+       const matches = html.match(imgSrcRegex) || [];
+       for (let src of matches) {
+           // Decode unicode quotes or escapes
+           src = src.replace(/\\u002F/g, '/').replace(/\\"/g, '').replace(/\\'/g, '').replace(/\\/g, '').trim();
+           if (!src.includes('data:image') && 
+               !src.includes('placeholder') &&
+               !src.includes('1x1') &&
+               !src.includes('lazy') &&
+               !src.includes('tracking') &&
+               !src.toLowerCase().includes('logo') &&
+               !src.toLowerCase().includes('icon')) {
+               allImages.push(src);
+           }
+       }
+    } catch(e) {}
     
     // Deduplicate array and keep the top 6 images
     allImages = [...new Set(allImages)].slice(0, 6);
@@ -1523,39 +1550,54 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
 
         // Add if not a duplicate
         if (!catalogDB.find((catItem: any) => catItem.url === result.url)) {
-          // Simple heuristic logic to smartly categorize based on title and URL
-          const lowerName = (result.name || '').toLowerCase() + ' ' + (result.url || '').toLowerCase();
-          const smartCategories: string[] = [];
+          // New logic to standardize category based on matching keywords
+          const standardizeCategory = (categoryInput: string | null, nameFallback: string) => {
+              const input = ((categoryInput || '') + ' ' + (nameFallback || '')).toLowerCase();
+              const categories = [];
+              
+              if (input.match(/shirt|dress|pants|jeans|shoes|sneakers|jacket|coat|hoodie|clothing|apparel|hat|sock|wear|fashion/)) {
+                  categories.push('Fashion');
+              }
+              if (input.match(/phone|tv|laptop|computer|camera|headphone|earbud|speaker|electronics|nintendo|playstation|xbox|monitor/)) {
+                  categories.push('Electronics');
+              }
+              if (input.match(/table|chair|bed|sofa|kitchen|home|decor|furniture|vacuum|blender|microwave|appliances/)) {
+                  categories.push('Home & Garden');
+              }
+              if (input.match(/makeup|skin|hair|beauty|fragrance|perfume|cologne|lotion|serum/)) {
+                  categories.push('Health & Beauty');
+              }
+              if (input.match(/toy|game|lego|doll|puzzle|baby|kids/)) {
+                  categories.push('Toys & Kids');
+              }
+              if (input.match(/sport|fitness|gym|workout|bike|running|golf|tennis|outdoor/)) {
+                  categories.push('Sports & Outdoors');
+              }
+              if (input.match(/vitamin|supplement|pharmacy|medicine|nutrition/)) {
+                  categories.push('Health & Supplements');
+              }
+              if (input.match(/auto|car|vehicle|parts/)) {
+                  categories.push('Automotive');
+              }
+              if (input.match(/pet|dog|cat/)) {
+                  categories.push('Pet Supplies');
+              }
+              
+              if (categories.length === 0) categories.push('Miscellaneous');
+              return categories;
+          };
           
-          if (lowerName.match(/shirt|dress|pants|jeans|shoes|sneakers|jacket|coat|hoodie|clothing|apparel|hat|sock|wear/)) {
-             smartCategories.push('Fashion');
-          }
-          if (lowerName.match(/phone|tv|laptop|computer|camera|headphone|earbud|speaker|electronics|nintendo|playstation|xbox|monitor/)) {
-             smartCategories.push('Electronics');
-          }
-          if (lowerName.match(/table|chair|bed|sofa|kitchen|home|decor|furniture|vacuum|blender|microwave/)) {
-             smartCategories.push('Home & Garden');
-          }
-          if (lowerName.match(/makeup|skin|hair|beauty|fragrance|perfume|cologne|lotion|serum/)) {
-             smartCategories.push('Health & Beauty');
-          }
-          if (lowerName.match(/toy|game|lego|doll|puzzle|baby|kids/)) {
-             smartCategories.push('Toys & Kids');
-          }
-          if (lowerName.match(/sport|fitness|gym|workout|bike|running|golf|tennis/)) {
-             smartCategories.push('Sports & Outdoors');
-          }
-          
-          if (smartCategories.length === 0) smartCategories.push('Miscellaneous');
+          const smartCategories = standardizeCategory(originalCategory, productName as string);
 
           const newCatalogItem = {
             id: 'auto_' + Date.now().toString() + Math.random().toString(36).substring(2, 6),
             name: result.name,
             url: result.url,
-            price: result.price || 0,
-            imageUrl: result.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-            store: result.store || 'Unknown',
-            categories: smartCategories,
+            price: result.price,
+            imageUrl: result.imageUrl,
+            imageUrls: result.imageUrls,
+            store: result.store,
+            categories: smartCategories, // Applied our improved categorizer
             addedAt: new Date().toISOString()
           };
           
