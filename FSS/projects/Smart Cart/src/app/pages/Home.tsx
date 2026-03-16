@@ -231,7 +231,7 @@ export function Home() {
               <h2 className="text-xl font-medium text-white">{homeData.appsTitle}</h2>
             </div>
             <div className="grid md:grid-cols-2">
-              <div className="p-8 md:p-12 border-b md:border-b-0 md:border-r border-white/10">
+              <div className="hidden md:block p-8 md:p-12 border-b md:border-b-0 md:border-r border-white/10">
                 <div className="bg-white/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
                   <Chrome className="size-8 text-white" />
                 </div>
