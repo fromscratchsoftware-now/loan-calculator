@@ -5,11 +5,25 @@ export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+
   useEffect(() => {
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       return;
     }
+
+    // Detect OS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const ios = /iphone|ipad|ipod/.test(userAgent);
+    const android = /android/.test(userAgent);
+    
+    setIsIOS(ios);
+    setIsAndroid(android);
+
+    const lastDismissed = localStorage.getItem('pwa_banner_dismissed');
+    const shouldShow = !lastDismissed || Date.now() - Number(lastDismissed) > 86400000; // 24 hours
 
     const handleBeforeInstallPrompt = (e: any) => {
       // Prevent the mini-infobar from appearing on mobile
@@ -17,14 +31,20 @@ export function PWAInstallBanner() {
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
       
-      // Don't show immediately if they've dismissed it recently
-      const lastDismissed = localStorage.getItem('pwa_banner_dismissed');
-      if (!lastDismissed || Date.now() - Number(lastDismissed) > 86400000) { // 24 hours
+      if (shouldShow) {
         setIsVisible(true);
       }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // If it's iOS or Android, show the manual instruction banner if native prompt doesn't fire
+    if ((ios || android) && shouldShow) {
+        // Delay slightly to see if native prompt catches it first
+        setTimeout(() => {
+           setIsVisible(true);
+        }, 500);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -63,16 +83,22 @@ export function PWAInstallBanner() {
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold">Install SmartCart</span>
-          <span className="text-xs text-indigo-100">Add to home screen for quick access</span>
+          <span className="text-xs text-indigo-100">
+            {isIOS ? 'Tap Share ➦ then "Add to Home Screen"' :
+             (!deferredPrompt && isAndroid) ? 'Tap menu ⋮ then "Add to Home Screen"' :
+             'Add to home screen for quick access'}
+          </span>
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <button
-          onClick={handleInstallClick}
-          className="bg-white text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors"
-        >
-          Install
-        </button>
+        {(!isIOS && deferredPrompt) && (
+          <button
+            onClick={handleInstallClick}
+            className="bg-white text-indigo-600 hover:bg-indigo-50 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors"
+          >
+            Install
+          </button>
+        )}
         <button
           onClick={handleDismiss}
           className="p-1.5 text-indigo-200 hover:text-white rounded-md bg-transparent transition-colors"
