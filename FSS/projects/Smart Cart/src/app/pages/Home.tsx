@@ -29,7 +29,7 @@ export function Home() {
     why4Desc: "Stay updated with real-time order tracking from purchase to delivery.",
     appsTitle: "Get to your cart faster",
     extTitle: "Install Browser Extension",
-    extDesc: "Add products directly from any online store with a single click. Available for desktop Chrome, Edge, and Brave.",
+    extDesc: "Add products directly to SmartCart from any online store with a single click. Available for desktop Chrome, Edge, and Brave.",
     extBtn: "Add to Browser",
     appTitle: "Install Mobile App",
     appDesc: "Share products from any app directly to SmartCart using your phone's native share menu.",
