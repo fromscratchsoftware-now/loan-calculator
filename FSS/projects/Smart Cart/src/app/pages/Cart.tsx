@@ -12,6 +12,7 @@ export interface CartItem {
   url: string;
   price: number;
   imageUrl: string;
+  imageUrls?: string[];
   quantity: number;
   store: string;
   notes?: string;

@@ -1444,9 +1444,51 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
       });
     }
 
+    let allImages: string[] = [];
+    if (productImage) allImages.push(productImage);
+
+    // Extract additional pictures without slowing down by leveraging the already-downloaded document DOM
+    try {
+      if (typeof document !== 'undefined') {
+        const imgElements = document.querySelectorAll('img');
+        let count = 0;
+        for (const img of Array.from(imgElements) as any[]) {
+          if (count > 100) break; // Limit iteration for speed
+          
+          let src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-zoom-image');
+          if (src) {
+            src = src.trim();
+            // Skip typical low-quality/metadata images
+            if (!src.includes('data:image') && 
+                !src.includes('placeholder') &&
+                !src.includes('1x1') &&
+                !src.includes('.svg') &&
+                !src.includes('tracking') &&
+                !src.toLowerCase().includes('logo') &&
+                !src.toLowerCase().includes('icon')) {
+                
+                // Make absolute
+                if (!src.startsWith("http")) {
+                   try { src = new URL(src, fetchUrl).toString(); } catch(e){}
+                }
+                
+                allImages.push(src);
+                count++;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Non-fatal error scraping extra images:", e);
+    }
+    
+    // Deduplicate array and keep the top 6 images
+    allImages = [...new Set(allImages)].slice(0, 6);
+
     const result = {
       name: productName || null,
       imageUrl: productImage || null,
+      imageUrls: allImages,
       price: priceNumber,
       store: storeName, // Always use domain-based store name
       description: productDescription || null,
@@ -1464,12 +1506,48 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
         
         // Prepare catalog array
         let catalogDB = [];
-        if (existingCat && Array.isArray(existingCat.value)) {
-          catalogDB = [...existingCat.value];
+        if (existingCat) {
+          if (Array.isArray(existingCat.value)) {
+            catalogDB = [...existingCat.value];
+          } else if (typeof existingCat.value === 'string') {
+            try {
+              const parsed = JSON.parse(existingCat.value);
+              if (Array.isArray(parsed)) {
+                catalogDB = [...parsed];
+              }
+            } catch (e) {
+              console.error("Failed to parse existing catalog from DB", e);
+            }
+          }
         }
 
         // Add if not a duplicate
         if (!catalogDB.find((catItem: any) => catItem.url === result.url)) {
+          // Simple heuristic logic to smartly categorize based on title and URL
+          const lowerName = (result.name || '').toLowerCase() + ' ' + (result.url || '').toLowerCase();
+          const smartCategories: string[] = [];
+          
+          if (lowerName.match(/shirt|dress|pants|jeans|shoes|sneakers|jacket|coat|hoodie|clothing|apparel|hat|sock|wear/)) {
+             smartCategories.push('Fashion');
+          }
+          if (lowerName.match(/phone|tv|laptop|computer|camera|headphone|earbud|speaker|electronics|nintendo|playstation|xbox|monitor/)) {
+             smartCategories.push('Electronics');
+          }
+          if (lowerName.match(/table|chair|bed|sofa|kitchen|home|decor|furniture|vacuum|blender|microwave/)) {
+             smartCategories.push('Home & Garden');
+          }
+          if (lowerName.match(/makeup|skin|hair|beauty|fragrance|perfume|cologne|lotion|serum/)) {
+             smartCategories.push('Health & Beauty');
+          }
+          if (lowerName.match(/toy|game|lego|doll|puzzle|baby|kids/)) {
+             smartCategories.push('Toys & Kids');
+          }
+          if (lowerName.match(/sport|fitness|gym|workout|bike|running|golf|tennis/)) {
+             smartCategories.push('Sports & Outdoors');
+          }
+          
+          if (smartCategories.length === 0) smartCategories.push('Miscellaneous');
+
           const newCatalogItem = {
             id: 'auto_' + Date.now().toString() + Math.random().toString(36).substring(2, 6),
             name: result.name,
@@ -1477,7 +1555,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
             price: result.price || 0,
             imageUrl: result.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
             store: result.store || 'Unknown',
-            categories: ['Miscellaneous'],
+            categories: smartCategories,
             addedAt: new Date().toISOString()
           };
           

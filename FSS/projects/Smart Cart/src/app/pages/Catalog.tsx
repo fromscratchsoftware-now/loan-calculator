@@ -10,6 +10,7 @@ interface CatalogItem {
   url: string;
   price: number;
   imageUrl: string;
+  imageUrls?: string[];
   store: string;
   categories: string[];
   addedAt: string;
@@ -311,18 +312,38 @@ export function Catalog() {
             {filteredCatalog.map((item) => (
               <div key={item.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow group">
                 {/* Image */}
-                <div className="relative h-36 bg-white flex-shrink-0 overflow-hidden">
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400";
-                      }}
-                    />
+                <div className="relative h-36 bg-white flex-shrink-0 flex overflow-x-auto snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {item.imageUrls && item.imageUrls.length > 0 ? (
+                    item.imageUrls.map((img, i) => (
+                      <div key={i} className="w-full h-full flex-shrink-0 snap-center relative">
+                        <img
+                          src={img}
+                          alt={`${item.name} - Image ${i + 1}`}
+                          className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'; // hide broken fallback images in galleries to not clutter
+                          }}
+                        />
+                        {item.imageUrls!.length > 1 && (
+                          <div className="absolute bottom-1 right-2 bg-black/40 text-[9px] text-white px-1.5 py-0.5 rounded-full pointer-events-none">
+                            {i + 1}/{item.imageUrls!.length}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : item.imageUrl ? (
+                    <div className="w-full h-full flex-shrink-0 snap-center relative">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400";
+                        }}
+                      />
+                    </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 flex-shrink-0 snap-center">
                       <ShoppingCart className="w-8 h-8 opacity-20" />
                     </div>
                   )}
