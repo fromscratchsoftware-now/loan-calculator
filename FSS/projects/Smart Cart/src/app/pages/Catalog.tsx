@@ -53,6 +53,13 @@ export function Catalog() {
         }
       }
 
+      // Sort parsed catalog items to show latest first based on addedAt
+      parsed.sort((a: CatalogItem, b: CatalogItem) => {
+         const timeA = new Date(a.addedAt || 0).getTime();
+         const timeB = new Date(b.addedAt || 0).getTime();
+         return timeB - timeA;
+      });
+
       setCatalog(parsed);
       
       // Extract unique categories

@@ -79,10 +79,18 @@ export function AdminCatalog() {
         return item;
       });
 
-      if (modified) {
-        localStorage.setItem('catalog', JSON.stringify(parsed));
-      }
+      // Always save back to localStorage for Admin.
+      // Doing this guarantees that any of the Admin's previously locally cached 
+      // catalog items are forcefully auto-synced up to the Supabase cloud via the DatabaseSync hook!
+      localStorage.setItem('catalog', JSON.stringify(parsed));
       
+      // Sort parsed catalog items to show latest first based on addedAt
+      parsed.sort((a: CatalogItem, b: CatalogItem) => {
+         const timeA = new Date(a.addedAt || 0).getTime();
+         const timeB = new Date(b.addedAt || 0).getTime();
+         return timeB - timeA;
+      });
+
       setCatalog(parsed);
     } else {
       const initialDemoCatalog: CatalogItem[] = [
