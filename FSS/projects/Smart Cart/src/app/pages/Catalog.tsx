@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, ExternalLink, Filter, BookmarkPlus } from 'lucide-react';
+import { ShoppingCart, Search, ExternalLink, Filter, BookmarkPlus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import Select from 'react-select';
 import { DatabaseSync } from '../utils/databaseSync';
@@ -21,6 +21,7 @@ export function Catalog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<string[]>([]);
+  const [fullScreenViewer, setFullScreenViewer] = useState<{item: CatalogItem, index: number} | null>(null);
 
   useEffect(() => {
     const loadCatalogData = () => {
@@ -319,7 +320,8 @@ export function Catalog() {
                         <img
                           src={img}
                           alt={`${item.name} - Image ${i + 1}`}
-                          className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                          className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out cursor-pointer"
+                          onClick={() => setFullScreenViewer({item, index: i})}
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'; // hide broken fallback images in galleries to not clutter
                           }}
@@ -336,7 +338,8 @@ export function Catalog() {
                       <img
                         src={item.imageUrl}
                         alt={item.name}
-                        className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                        onClick={() => setFullScreenViewer({item, index: 0})}
+                        className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out cursor-pointer"
                         onError={(e) => {
                           e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400";
                         }}
@@ -407,6 +410,81 @@ export function Catalog() {
           </div>
         )}
       </div>
+
+      {/* Fullscreen Modal Viewer */}
+      {fullScreenViewer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-8" onClick={() => setFullScreenViewer(null)}>
+          <button 
+             onClick={() => setFullScreenViewer(null)}
+             className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 hover:bg-black p-2 rounded-full transition-all z-20"
+          >
+             <X className="w-6 h-6" />
+          </button>
+          
+          <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            {/* Image display */}
+            <div className="relative w-full flex-1 min-h-0 flex flex-col items-center justify-center">
+              {fullScreenViewer.item.imageUrls && fullScreenViewer.item.imageUrls.length > 1 && (
+                 <>
+                   <button 
+                      onClick={(e) => { e.stopPropagation(); setFullScreenViewer({item: fullScreenViewer.item, index: fullScreenViewer.index > 0 ? fullScreenViewer.index - 1 : fullScreenViewer.item.imageUrls!.length - 1}); }}
+                      className="absolute left-0 sm:left-4 z-10 bg-black/50 hover:bg-black/90 text-white p-3 rounded-full backdrop-blur-sm transition-colors"
+                   >
+                     <ChevronLeft className="w-6 h-6" />
+                   </button>
+                   <button 
+                      onClick={(e) => { e.stopPropagation(); setFullScreenViewer({item: fullScreenViewer.item, index: (fullScreenViewer.index + 1) % fullScreenViewer.item.imageUrls!.length}); }}
+                      className="absolute right-0 sm:right-4 z-10 bg-black/50 hover:bg-black/90 text-white p-3 rounded-full backdrop-blur-sm transition-colors"
+                   >
+                     <ChevronRight className="w-6 h-6" />
+                   </button>
+                 </>
+              )}
+              <img 
+                 src={fullScreenViewer.item.imageUrls && fullScreenViewer.item.imageUrls.length > 0 ? fullScreenViewer.item.imageUrls[fullScreenViewer.index] : fullScreenViewer.item.imageUrl}
+                 alt={fullScreenViewer.item.name}
+                 className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              />
+            </div>
+            
+            {/* Details overlay */}
+            <div className="mt-4 w-full bg-black/60 backdrop-blur-md p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between border border-white/10">
+               <div className="text-white min-w-0 flex-1 text-center sm:text-left">
+                  <h3 className="font-semibold text-lg line-clamp-1">{fullScreenViewer.item.name}</h3>
+                  <p className="text-white/70 text-sm mt-1">{fullScreenViewer.item.store}</p>
+               </div>
+               <div className="flex items-center gap-4 flex-shrink-0">
+                  <span className="text-2xl font-bold text-white">${fullScreenViewer.item.price.toFixed(2)}</span>
+                  <button
+                    onClick={() => {
+                        handleAddToCart(fullScreenViewer.item);
+                        setFullScreenViewer(null);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-600/30 flex items-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Add
+                  </button>
+               </div>
+            </div>
+            
+            {/* Thumbnail Navigation */}
+            {fullScreenViewer.item.imageUrls && fullScreenViewer.item.imageUrls.length > 1 && (
+               <div className="mt-4 flex gap-2 max-w-full overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                 {fullScreenViewer.item.imageUrls.map((img, i) => (
+                    <button 
+                       key={i}
+                       onClick={() => setFullScreenViewer({ ...fullScreenViewer, index: i })}
+                       className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${i === fullScreenViewer.index ? 'border-white opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover bg-white" />
+                    </button>
+                 ))}
+               </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
