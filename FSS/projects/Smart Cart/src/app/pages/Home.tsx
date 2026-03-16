@@ -13,7 +13,7 @@ export function Home() {
     heroBgImage: "https://images.unsplash.com/photo-1631010231931-d2c396b444ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaGlwcGluZyUyMHBhY2thZ2VzJTIwZGVsaXZlcnklMjBib3hlcyUyMHNob3BwaW5nfGVufDF8fHx8MTc3MzExNTI3MXww&ixlib=rb-4.1.0&q=80&w=1080",
     howTitle: "How It Works",
     how1Title: "1. Add Products",
-    how1Desc: "Browse any online store and add products to your SmartCart. Just paste the product URL, image, and details.",
+    how1Desc: "Browse any online store and add products to your SmartCart. Just paste the product URL, use our browser extension, or tap Share in your phone's browser to push products directly to your cart.",
     how2Title: "2. Submit Order",
     how2Desc: "Review your cart and submit your order. Our team receives your request immediately.",
     how3Title: "3. We Deliver",
