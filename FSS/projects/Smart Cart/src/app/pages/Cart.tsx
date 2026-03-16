@@ -174,6 +174,30 @@ export function Cart() {
       
       // Only add if it doesn't already exist in the catalog
       if (product.url && !catalog.some((catItem: any) => catItem.url === product.url)) {
+        const lowerName = (product.name || '').toLowerCase() + ' ' + (product.url || '').toLowerCase();
+        const smartCategories: string[] = [];
+        
+        if (lowerName.match(/shirt|dress|pants|jeans|shoes|sneakers|jacket|coat|hoodie|clothing|apparel|hat|sock|wear/)) {
+           smartCategories.push('Fashion');
+        }
+        if (lowerName.match(/phone|tv|laptop|computer|camera|headphone|earbud|speaker|electronics|nintendo|playstation|xbox|monitor/)) {
+           smartCategories.push('Electronics');
+        }
+        if (lowerName.match(/table|chair|bed|sofa|kitchen|home|decor|furniture|vacuum|blender|microwave/)) {
+           smartCategories.push('Home & Garden');
+        }
+        if (lowerName.match(/makeup|skin|hair|beauty|fragrance|perfume|cologne|lotion|serum/)) {
+           smartCategories.push('Health & Beauty');
+        }
+        if (lowerName.match(/toy|game|lego|doll|puzzle|baby|kids/)) {
+           smartCategories.push('Toys & Kids');
+        }
+        if (lowerName.match(/sport|fitness|gym|workout|bike|running|golf|tennis/)) {
+           smartCategories.push('Sports & Outdoors');
+        }
+        
+        if (smartCategories.length === 0) smartCategories.push('Miscellaneous');
+
         const newCatalogItem = {
           id: 'cust_' + Date.now().toString() + Math.random().toString(36).substring(2, 6),
           name: product.name,
@@ -181,7 +205,7 @@ export function Cart() {
           price: Number(product.price) || 0,
           imageUrl: product.imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
           store: product.store || 'Unknown',
-          // Admin can categorize later
+          categories: smartCategories,
           addedAt: new Date().toISOString()
         };
         
