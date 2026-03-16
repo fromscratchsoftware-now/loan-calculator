@@ -723,7 +723,14 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
               product?.price ||
               product?.currentPrice;
               
-            const image = product?.imageInfo?.thumbnailUrl || product?.imageInfo?.allImages?.[0]?.url;
+            let image = product?.imageInfo?.thumbnailUrl || product?.imageInfo?.allImages?.[0]?.url;
+            if (image) image = image.split('?')[0];
+
+            let imageUrls: string[] = [];
+            if (product?.imageInfo?.allImages && Array.isArray(product.imageInfo.allImages)) {
+                imageUrls = product.imageInfo.allImages.map((img: any) => img.url ? img.url.split('?')[0] : null).filter(Boolean);
+            }
+            
             const name = product?.name || walmartProductName;
             
             console.log(`Extracted from Walmart API - Name: ${name}, Price: ${price}, Image: ${image}`);
@@ -731,6 +738,7 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
             return c.json({
               name: name,
               imageUrl: image || null,
+              imageUrls: imageUrls.length > 0 ? Array.from(new Set(imageUrls)).slice(0, 6) : (image ? [image] : []),
               price: price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : null,
               store: 'walmart.com',
               description: product?.shortDescription || null,
@@ -1511,22 +1519,25 @@ app.post("/make-server-23b9846d/extract-product", async (c) => {
        }
     } catch(e) {}
     
-    // Deduplicate array by base URL (ignoring query parameters to prevent 5 sizes of the exact same image)
-    const uniqueImages = new Map<string, string>();
+    // Convert to absolute, strip out CDN resizing query parameters so we only save original high-res base assets, and deduplicate
+    const cleanImages = new Set<string>();
+    
+    // Add primary hero image first if it exists
+    if (productImage) {
+        cleanImages.add(productImage.split('?')[0]);
+    }
+    
     for (const img of allImages) {
         try {
-            const baseUrl = img.split('?')[0];
-            if (!uniqueImages.has(baseUrl)) {
-                uniqueImages.set(baseUrl, img);
-            } else {
-                // If the new one seems like a higher resolution version, keep it instead
-                if (img.match(/1000|2000|large|high|zoom/i)) {
-                    uniqueImages.set(baseUrl, img);
-                }
-            }
+            if (!img) continue;
+            // Trim tracking/resizing CDN tokens to hit the raw source image 
+            const baseUrl = img.split('?')[0]; 
+            cleanImages.add(baseUrl);
         } catch(e) {}
     }
-    allImages = Array.from(uniqueImages.values()).slice(0, 6);
+    
+    // Keep max 6 pristine unique images
+    allImages = Array.from(cleanImages).slice(0, 6);
 
     const result = {
       name: productName || null,
