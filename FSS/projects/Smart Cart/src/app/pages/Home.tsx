@@ -267,21 +267,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto bg-indigo-600 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-3xl mb-4">{homeData.ctaTitle}</h2>
-          <p className="text-xl mb-8 opacity-90">
-            {homeData.ctaSubtext}
-          </p>
-          <Link
-            to="/cart"
-            className="inline-flex items-center gap-2 bg-white text-indigo-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors text-lg"
-          >
-            {homeData.ctaBtn}
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
