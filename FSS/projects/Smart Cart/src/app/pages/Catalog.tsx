@@ -296,56 +296,56 @@ export function Catalog() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {filteredCatalog.map((item) => (
               <div key={item.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow group">
                 {/* Image */}
-                <div className="relative h-48 bg-white flex-shrink-0 overflow-hidden">
+                <div className="relative h-36 bg-white flex-shrink-0 overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
-                      className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 ease-in-out"
+                      className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500 ease-in-out"
                       onError={(e) => {
                         e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400";
                       }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <ShoppingCart className="w-10 h-10 opacity-20" />
+                      <ShoppingCart className="w-8 h-8 opacity-20" />
                     </div>
                   )}
                   {/* Category badging */}
                   {item.categories && item.categories.length > 0 && (
                     <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
                       {item.categories.slice(0, 2).map((cat, idx) => (
-                         <span key={idx} className="bg-white/90 backdrop-blur text-indigo-700 text-xs font-semibold px-2 py-1 rounded shadow-sm">
+                         <span key={idx} className="bg-white/90 backdrop-blur text-indigo-700 text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm">
                           {cat}
                         </span>
                       ))}
                     </div>
                   )}
                   {/* Store Badge */}
-                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur text-white text-xs font-medium px-2 py-1 rounded shadow-sm">
+                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur text-white text-[10px] font-medium px-1.5 py-0.5 rounded shadow-sm">
                     {item.store}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2" title={item.name}>
+                <div className="p-3 flex flex-col flex-1">
+                  <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2" title={item.name}>
                     {item.name}
                   </h3>
                   
-                  <div className="mt-auto pt-4 flex items-center justify-between">
-                    <span className="text-xl font-bold text-gray-900">
+                  <div className="mt-auto pt-3 flex items-center justify-between">
+                    <span className="text-lg font-bold text-gray-900">
                       ${item.price.toFixed(2)}
                     </span>
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-indigo-600 transition-colors p-2"
+                      className="text-gray-400 hover:text-indigo-600 transition-colors p-1"
                       title="View original product"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -353,10 +353,10 @@ export function Catalog() {
                   </div>
                   
                   {/* Action */}
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-3 flex gap-2">
                     <button
                       onClick={() => handleAddToCart(item)}
-                      className="flex-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white"
+                      className="flex-1 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white"
                     >
                       <ShoppingCart className="w-4 h-4" />
                       Add to Cart
